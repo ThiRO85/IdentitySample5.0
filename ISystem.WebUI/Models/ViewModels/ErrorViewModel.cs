@@ -1,6 +1,4 @@
-using System;
-
-namespace ISystem.WebUI.Models
+namespace ISystem.WebUI.Models.ViewModels
 {
     public class ErrorViewModel
     {

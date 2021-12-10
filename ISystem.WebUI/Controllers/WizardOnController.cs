@@ -1,12 +1,7 @@
 ﻿using ISystem.Application.Interfaces;
-using ISystem.Application.Methods;
 using ISystem.Domain.Entities.WizardOn;
-using ISystem.Infrastructure.Contexts;
-using ISystem.Infrastructure.Methods;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace ISystem.WebUI.Controllers
@@ -48,7 +43,6 @@ namespace ISystem.WebUI.Controllers
                 return View("Index");
 
             await _wizardOnService.NovoCliente(cliente);
-
             return RedirectToAction("CriarOc", new { id = cliente.Id });
         }
 
