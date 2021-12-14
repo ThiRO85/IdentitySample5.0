@@ -1,4 +1,5 @@
 ﻿using ISystem.Domain.Interfaces;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ISystem.Domain.Entities
 {
@@ -10,6 +11,8 @@ namespace ISystem.Domain.Entities
         public string Posicao { get; set; }
         public bool Ativo { get; set; }
         public Mantenedor Mantenedor { get; set; }
-        public IApplicationUser Users { get; set; }
+
+        [NotMapped]
+        public IApplicationUser Users { get; set; } //[NotMapped] incluído para conseguir gerar as tabelas. Não existia originalmente!
     }
 }

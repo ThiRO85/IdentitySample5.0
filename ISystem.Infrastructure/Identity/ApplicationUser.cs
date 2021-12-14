@@ -22,7 +22,6 @@ namespace ISystem.Infrastructure.Identity
         }
 
         public virtual ICollection<Client> Clients { get; set; }
-
         public virtual ICollection<FilaWizardOn> FilaWizardOn { get; set; }
         //public virtual ICollection<FilaWizard02> FilaWizard02 { get; set; }
 

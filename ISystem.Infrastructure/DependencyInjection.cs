@@ -1,5 +1,6 @@
 ﻿using ISystem.Application.Interfaces;
 using ISystem.Application.Services;
+using ISystem.Domain.Account;
 using ISystem.Domain.Interfaces;
 using ISystem.Infrastructure.Contexts;
 using ISystem.Infrastructure.Identity;
@@ -24,10 +25,12 @@ namespace ISystem.Infrastructure
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
-            //services.ConfigureApplicationCookie(options => options.AccessDeniedPath = "/Account/Login");
+            services.ConfigureApplicationCookie(options => options.AccessDeniedPath = "/Account/Login");
 
             services.AddScoped<IWizardOnRepository, WizardOnRepository>();
             services.AddScoped<IWizardOnService, WizardOnService>();
+            services.AddScoped<IAuthenticate, AuthenticateService>();
+            services.AddScoped<ISeedUserRoleInitial, SeedUserRoleInitial>();
 
             return services;
         }

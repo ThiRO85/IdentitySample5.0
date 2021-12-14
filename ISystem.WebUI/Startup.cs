@@ -1,3 +1,4 @@
+using ISystem.Domain.Account;
 using ISystem.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -22,7 +23,8 @@ namespace ISystem.WebUI
             services.AddControllersWithViews();
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env,
+            ISeedUserRoleInitial seedRoleUserInitial)
         {
             if (env.IsDevelopment())
             {
@@ -35,9 +37,12 @@ namespace ISystem.WebUI
             }
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
             app.UseRouting();
 
+            //seedRoleUserInitial.SeedRoles(); 
+            //seedRoleUserInitial.SeedUsers(); //É preciso gerar as tabelas do Identity primeiro!
+
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

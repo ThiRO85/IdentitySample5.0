@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ISystem.WebUI.Controllers
 {
+    [Authorize] //É preciso estar com os registros de autenticação e autorização devidamente registrados!
     public class HomeController : Controller
     {
         public IActionResult Index()
