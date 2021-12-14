@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace ISystem.Infrastructure.Repositories
@@ -115,6 +116,56 @@ namespace ISystem.Infrastructure.Repositories
                 listaEvento.Add(evento);
 
             return listaEvento;
-        }        
+        }
+
+        public async Task<OcorrenciaWizardOn> CriarOcorrenciaAsync(int? id)
+        {
+            //if (id == null)
+            //{
+            //    return new HttpStatusCodeResult(HttpStatusCode.BadRequest, "Parâmetro de Busca Nulo");
+            //}
+            //if (_db.OcorrenciaWizardOn.Any(aa => aa.Finalizado == false && aa.FilaId == 1 && aa.ClienteWizardOnId == id))
+            //{
+            //    TempData["Message"] = "Já existe uma ocorrência pendente para este cliente, finalize-a antes de criar uma nova ou verifique se você tem acesso à fila";
+            //    return RedirectToAction("Index");
+            //}
+
+            var ocorrencia = new OcorrenciaWizardOn();
+
+            ocorrencia.FilaId = 1; // Fila Padrão
+            ocorrencia.ClienteWizardOnId = (int)id;
+            ocorrencia.ProximoAt = DateTime.Now.AddMinutes(60);
+            ocorrencia.Finalizado = false;
+            //ocorrencia.UsersId = User.Identity.GetUserId();
+            ocorrencia.CampanhaId = 1;
+
+            var cliente = await _context.ClienteWizardOn.FirstOrDefaultAsync(x => x.Id == id);
+
+            var evento = new EventoWizardOn();
+
+            PropertyCopier.Copy(cliente, evento);
+
+            evento.ClienteWizardOn = cliente;
+            //evento.UsersId = User.Identity.GetUserId();
+            evento.FilaId = ocorrencia.FilaId;
+
+            ocorrencia.Eventos.Add(evento);
+            await _context.OcorrenciaWizardOn.AddAsync(ocorrencia);
+            await _context.SaveChangesAsync();
+            return ocorrencia;
+        }
+
+        public async Task<OcorrenciaWizardOn> ReseteOcorrenciaAsync(int id)
+        {
+            var ocorrencia = await _context.OcorrenciaWizardOn.FindAsync(id);
+            if (!ocorrencia.Finalizado)
+            {
+                ocorrencia.ProximoAt = DateTime.Now;
+                ocorrencia.Agendamento = false;
+                ocorrencia.AgendamentoProprio = false;
+                await _context.SaveChangesAsync();
+            }
+            return ocorrencia;
+        }
     }
 }

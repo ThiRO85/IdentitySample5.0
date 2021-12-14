@@ -31,6 +31,18 @@ namespace ISystem.Application.Services
         {
             var regraRenitencia = await _wizardOnRepository.RegraRenitenciaAsync(evento, reprocessando);
             return regraRenitencia;
-        }       
+        }
+
+        public async Task<OcorrenciaWizardOn> CriarOcorrencia(int? id)
+        {
+            var ocorrencia = await _wizardOnRepository.CriarOcorrenciaAsync(id);
+            return ocorrencia;
+        }
+
+        public async Task<OcorrenciaWizardOn> ReseteOcorrencia(int id)
+        {
+            var ocorrencia = await _wizardOnRepository.ReseteOcorrenciaAsync(id);
+            return ocorrencia;
+        }        
     }
 }

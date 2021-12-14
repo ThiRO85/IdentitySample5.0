@@ -186,7 +186,7 @@ namespace ISystem.Domain.Entities.WizardOn
 
         [Column("Users_Id")]
         public string UsersId { get; set; }
-        public IApplicationUser Users { get; set; } //Alternativa para inserir ApplicationUser?
+        public IApplicationUser Users { get; set; } //Alternativa para inserir ApplicationUser
 
         [Column("Ocorrencia_Id")]
         public int? OcorrenciaId { get; set; }

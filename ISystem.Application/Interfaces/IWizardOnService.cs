@@ -9,5 +9,7 @@ namespace ISystem.Application.Interfaces
         Task<List<ClienteWizardOn>> Index(string nome, string telefone1, string cpf, string email);
         Task<ClienteWizardOn> NovoCliente(ClienteWizardOn cliente);
         Task<List<EventoWizardOn>> RegraRenitencia(EventoWizardOn evento, bool reprocessando);
+        Task<OcorrenciaWizardOn> CriarOcorrencia(int? id);
+        Task<OcorrenciaWizardOn> ReseteOcorrencia(int id);
     }
 }

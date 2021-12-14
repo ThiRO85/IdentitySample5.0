@@ -15,12 +15,12 @@ namespace ISystem.Domain.Entities.WizardOn
         public int? GrupoWizardOnId { get; set; }
         public virtual GrupoProcessoWizardOn GrupoWizardOn { get; set; }
         public virtual ICollection<OcorrenciaWizardOn> Ocorrencias { get; set; }
-        public virtual ICollection<IApplicationUser> Users { get; set; } //Alternativa para inserir ApplicationUser?
+        public virtual ICollection<IApplicationUser> Users { get; set; } //Alternativa para inserir ApplicationUser
 
         public FilaWizardOn()
         {
             Ocorrencias = new Collection<OcorrenciaWizardOn>();
-            //Users = new Collection<ApplicationUser>();
+            Users = new Collection<IApplicationUser>();
         }
     }
 }

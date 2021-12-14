@@ -26,6 +26,7 @@ namespace ISystem.Infrastructure.Contexts
         public DbSet<SubTipoProcessoWizardOn> SubTipoProcessoWizardOn { get; set; }
         public DbSet<TipoProcessoWizardOn> TipoProcessoWizardOn { get; set; }
 
+        public DbSet<Client> Client { get; set; }
         public DbSet<Mantenedor> Mantenedor { get; set; }
         public DbSet<IntegracaoPabx> IntegracaoPabx { get; set; }
 

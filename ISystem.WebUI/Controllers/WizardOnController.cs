@@ -1,5 +1,6 @@
 ﻿using ISystem.Application.Interfaces;
 using ISystem.Domain.Entities.WizardOn;
+using ISystem.Infrastructure.Methods;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -15,10 +16,20 @@ namespace ISystem.WebUI.Controllers
             _wizardOnService = wizardOnService;
         }
 
-        public IActionResult Index()
-        {
-            return View();
-        }
+        //public IActionResult Index()
+        //{
+        //    var userid = User.Identity.GetUserId();
+        //    bool logado = Novax.Login(userid);
+        //    if (!logado)
+        //    {
+        //        ModelState.AddModelError("", "Falha no Login Novax");
+        //    }
+        //    if (TempData["Message"] != null)
+        //    {
+        //        ModelState.AddModelError(string.Empty, TempData["Message"].ToString());
+        //    }
+        //    return View();
+        //}
 
         //[HttpPost]
         //[ValidateAntiForgeryToken]
@@ -51,6 +62,19 @@ namespace ISystem.WebUI.Controllers
         {
             List<EventoWizardOn> listaEvento = await _wizardOnService.RegraRenitencia(evento, reprocessando);
             return listaEvento;
+        }
+
+        public async Task<IActionResult> CriarOc(int? id)
+        {
+            var ocorrencia = await _wizardOnService.CriarOcorrencia(id);
+            return RedirectToAction("Atendimento", new { ocorrenciaId = ocorrencia.Id });
+        }
+
+        //[Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ReseteOcorrencia(int id)
+        {
+            var ocorrencia = await _wizardOnService.ReseteOcorrencia(id);
+            return RedirectToAction("Atendimento", new { ocorrenciaId = id });
         }
     }
 }

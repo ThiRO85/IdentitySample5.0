@@ -30,7 +30,7 @@ namespace ISystem.Domain.Entities.WizardOn
 
         [Column("Users_Id")]
         public string UsersId { get; set; }
-        public IApplicationUser Users { get; set; } //Alternativa para inserir ApplicationUser?
+        public IApplicationUser Users { get; set; } //Alternativa para inserir ApplicationUser
         public bool Ativo { get; set; } = true;
         public DateTime DtCriacao { get; set; } = DateTime.Now;
         public int? ApiId { get; set; }

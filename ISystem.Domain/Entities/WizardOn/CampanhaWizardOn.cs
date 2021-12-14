@@ -3,10 +3,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ISystem.Domain.Entities.WizardOn
 {
-    public class CampanhaWizardOn
+    public class CampanhaWizardOn : Entity
     {
-        public int Id { get; set; }
-        public string Nome { get; set; }
         public int Registros { get; set; }
         public int Trabalhados { get; set; }
         public int Tentativas { get; set; }

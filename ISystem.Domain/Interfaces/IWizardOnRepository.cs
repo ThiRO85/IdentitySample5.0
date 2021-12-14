@@ -9,5 +9,7 @@ namespace ISystem.Domain.Interfaces
         Task<List<ClienteWizardOn>> IndexAsync(string nome, string telefone1, string cpf, string email);
         Task<ClienteWizardOn> NovoClienteAsync(ClienteWizardOn cliente);
         Task<List<EventoWizardOn>> RegraRenitenciaAsync(EventoWizardOn evento, bool reprocessando);
+        Task<OcorrenciaWizardOn> CriarOcorrenciaAsync(int? id);
+        Task<OcorrenciaWizardOn> ReseteOcorrenciaAsync(int id);
     }
 }
