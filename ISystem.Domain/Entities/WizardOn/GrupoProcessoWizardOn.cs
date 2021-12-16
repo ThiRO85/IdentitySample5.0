@@ -9,7 +9,7 @@ namespace ISystem.Domain.Entities.WizardOn
         public virtual ICollection<TipoProcessoWizardOn> TipoProcessoWizardOn { get; set; }
 
         //[NotMapped]
-        //public IEnumerable<SelectListItem> ClassificacaoList { get; set; }
+        //public IEnumerable<SelectListItem> ClassificacaoList { get; set; } //Buscar opção!
 
         public GrupoProcessoWizardOn()
         {

@@ -1,4 +1,5 @@
 ﻿using ISystem.Domain.Entities;
+using ISystem.Domain.Entities.Wizard02;
 using ISystem.Domain.Entities.WizardOn;
 using ISystem.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -25,6 +26,21 @@ namespace ISystem.Infrastructure.Contexts
         public DbSet<StatusWizardOn> StatusWizardOn { get; set; }
         public DbSet<SubTipoProcessoWizardOn> SubTipoProcessoWizardOn { get; set; }
         public DbSet<TipoProcessoWizardOn> TipoProcessoWizardOn { get; set; }
+
+        public DbSet<CampanhaWizard02> CampanhaWizard02 { get; set; }
+        public DbSet<ClasseProcessoWizard02> ClasseProcessoWizard02 { get; set; }
+        public DbSet<ClassificacaoWizard02> ClassificacaoWizard02 { get; set; }
+        public DbSet<ClienteWizard02> ClienteWizard02 { get; set; }
+        public DbSet<EventoWizard02> EventoWizard02 { get; set; }
+        public DbSet<FilaWizard02> FilaWizard02 { get; set; }
+        public DbSet<GrupoProcessoWizard02> GrupoProcessoWizard02 { get; set; }
+        public DbSet<Import> Import { get; set; }
+        public DbSet<OcorrenciaWizard02> OcorrenciaWizard02 { get; set; }
+        public DbSet<ProcessoWizard02> ProcessoWizard02 { get; set; }
+        public DbSet<RegraRenitenciaWizard02> RegraRenitenciaWizard02 { get; set; }
+        public DbSet<StatusWizard02> StatusWizard02 { get; set; }
+        public DbSet<SubTipoProcessoWizard02> SubTipoProcessoWizard02 { get; set; }
+        public DbSet<TipoProcessoWizard02> TipoProcessoWizard02 { get; set; }
 
         public DbSet<Client> Client { get; set; }
         public DbSet<Mantenedor> Mantenedor { get; set; }

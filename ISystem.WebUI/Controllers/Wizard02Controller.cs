@@ -1,19 +1,20 @@
 ﻿using ISystem.Application.Interfaces;
-using ISystem.Domain.Entities.WizardOn;
-using ISystem.Infrastructure.Methods;
+using ISystem.Domain.Entities.Wizard02;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ISystem.WebUI.Controllers
 {
-    public class WizardOnController : Controller
+    public class Wizard02Controller : Controller
     {
-        private readonly IWizardOnService _wizardOnService;
+        private readonly IWizard02Service _wizard02Service;
 
-        public WizardOnController(IWizardOnService wizardOnService)
+        public Wizard02Controller(IWizard02Service wizard02Service)
         {
-            _wizardOnService = wizardOnService;
+            _wizard02Service = wizard02Service;
         }
 
         //public IActionResult Index()
@@ -41,39 +42,39 @@ namespace ISystem.WebUI.Controllers
         //    {
         //        ModelState.AddModelError("", "Falha no Login Novax");
         //    }
-        //    var lista = await _wizardOnService.Index(nome, telefone1, cpf, email);
+        //    var lista = await _wizard02Service.Index(nome, telefone1, cpf, email);
 
         //    return View(lista);
         //}
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> NovoCliente(ClienteWizardOn cliente)
+        public async Task<IActionResult> NovoCliente(ClienteWizard02 cliente)
         {
             if (!ModelState.IsValid)
                 return View("Index");
 
-            await _wizardOnService.NovoCliente(cliente);
+            await _wizard02Service.NovoCliente(cliente);
             return RedirectToAction("CriarOc", new { id = cliente.Id });
         }
 
         [NonAction]
-        public async Task<List<EventoWizardOn>> RegraRenitencia(EventoWizardOn evento, bool reprocessando)
+        public async Task<List<EventoWizard02>> RegraRenitencia(EventoWizard02 evento, bool reprocessando)
         {
-            List<EventoWizardOn> listaEvento = await _wizardOnService.RegraRenitencia(evento, reprocessando);
+            List<EventoWizard02> listaEvento = await _wizard02Service.RegraRenitencia(evento, reprocessando);
             return listaEvento;
         }
 
         public async Task<IActionResult> CriarOc(int? id)
         {
-            var ocorrencia = await _wizardOnService.CriarOcorrencia(id);
+            var ocorrencia = await _wizard02Service.CriarOcorrencia(id);
             return RedirectToAction("Atendimento", new { ocorrenciaId = ocorrencia.Id });
         }
 
         //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> ReseteOcorrencia(int id)
         {
-            var ocorrencia = await _wizardOnService.ReseteOcorrencia(id);
+            var ocorrencia = await _wizard02Service.ReseteOcorrencia(id);
             return RedirectToAction("Atendimento", new { ocorrenciaId = id });
         }
     }

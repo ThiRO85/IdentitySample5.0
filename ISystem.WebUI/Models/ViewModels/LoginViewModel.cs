@@ -11,7 +11,7 @@ namespace ISystem.WebUI.Models.ViewModels
         [Required(ErrorMessage = "{0} é obrigatório!")]
         [StringLength(20, ErrorMessage = "A {0} deve ter no mínimo {2} e no máximo "
             + "{1} caracteres.", MinimumLength = 10)]
-        public string Password { get; set; }
+        public string Senha { get; set; }
         public string ReturnUrl { get; set; }
 
         //[Required]

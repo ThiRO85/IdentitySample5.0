@@ -26,7 +26,7 @@ namespace ISystem.WebUI.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
-            var result = await _authentication.Authenticate(model.Email, model.Password);
+            var result = await _authentication.Authenticate(model.Email, model.Senha);
 
             if (result)
             {
