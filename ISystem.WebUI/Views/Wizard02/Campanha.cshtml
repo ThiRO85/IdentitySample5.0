@@ -1,0 +1,194 @@
+﻿@model IEnumerable<ISystem.Domain.Entities.Wizard02.CampanhaWizard02>    
+<style>
+    .table {
+        font-size: 12px;
+    }
+</style>
+
+
+<div class="row">
+    <div class="col-md-6">
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".target-1">Mailing's Inativos</button>
+
+        <a href="CampanhaAtualizar" class="btn btn-info" role="button">Atualizar</a>
+
+        <a href="Importar" class="btn btn-info" role="button">Importar</a>
+        <a href="Fila" class="btn btn-info" role="button">Filas</a>
+        @* <input type="text" id="search" placeholder="Busca Geral">*@
+    </div>
+</div>
+
+@if (TempData["AlertMessage"] != null)
+{
+    <div class="alert alert-danger" role="alert">@Html.Raw(TempData["AlertMessage"])</div>
+}
+
+<table class="table table-striped" id="tabela1">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Nome)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Registros)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Trabalhados)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Tentativas)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Sucesso)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Recusa)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Target)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CPC)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.NLocalizado)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.TentativasMax)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Ativo)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.DtImportacao)
+        </th>
+
+        <th></th>
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        if (item.Ativo)
+        {
+            <tr id="@item.Id">
+                <td>
+                    @Html.DisplayFor(modelItem => item.Nome)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Registros)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Trabalhados)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Tentativas)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Sucesso)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Recusa)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Target)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CPC)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.NLocalizado)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.TentativasMax)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Ativo)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DtImportacao)
+                </td>
+                <td>
+                    @Html.ActionLink("Editar", "CampanhaEdit", new { id = item.Id })
+                </td>
+            </tr>
+        }
+    }
+</table>
+
+<div class="modal fade target-1" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Mailing's Inativos</h4>
+            </div>
+            <div class="modal-body">
+                <table class="table table-striped">
+                    <tr>
+                        <th>
+                            @Html.DisplayNameFor(model => model.Nome)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.Ativo)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.DtImportacao)
+                        </th>
+
+                        <th></th>
+                    </tr>
+
+                    @foreach (var item in Model)
+                    {
+                        if (item.Ativo == false)
+                        {
+                            <tr id="@item.Id">
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Nome)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Ativo)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.DtImportacao)
+                                </td>
+                                <td>
+                                    @Html.ActionLink("Editar", "CampanhaEdit", new { id = item.Id })
+                                </td>
+                            </tr>
+                        }
+                    }
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+
+    <script type="text/javascript" charset="utf-8">
+        // var $rows = $('#tabela1 tr');
+        //  $('#search').keyup(function () {
+        //       var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
+//
+        //       $rows.show().filter(function () {
+        //           var text = $($rows).text().replace(/\s+/g, ' ').toLowerCase();
+        //           return !~text.indexOf(val);
+        //       }).hide();
+        //    });
+
+        $('#search').keyup(function() {
+            var that = this;
+            $.each($('#tabela1 tr'),
+                function(i, val) {
+                    if ($(val).text().indexOf($(that).val()) == -1) {
+                        $('tr').eq(i).hide();
+                    } else {
+                        $('tr').eq(i).show();
+                    }
+                });
+        });
+    </script>
+}

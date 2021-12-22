@@ -29,6 +29,8 @@ namespace ISystem.Infrastructure
 
             services.AddScoped<IWizardOnRepository, WizardOnRepository>();
             services.AddScoped<IWizardOnService, WizardOnService>();
+            services.AddScoped<IWizard02Repository, Wizard02Repository>();
+            services.AddScoped<IWizard02Service, Wizard02Service>();
             services.AddScoped<IAuthenticate, AuthenticateService>();
             services.AddScoped<ISeedUserRoleInitial, SeedUserRoleInitial>();
 

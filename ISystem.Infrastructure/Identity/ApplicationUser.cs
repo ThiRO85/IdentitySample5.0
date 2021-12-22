@@ -1,4 +1,5 @@
 ﻿using ISystem.Domain.Entities;
+using ISystem.Domain.Entities.Wizard02;
 using ISystem.Domain.Entities.WizardOn;
 using ISystem.Domain.Interfaces;
 using Microsoft.AspNetCore.Identity;
@@ -18,12 +19,12 @@ namespace ISystem.Infrastructure.Identity
             Clients = new Collection<Client>();
 
             FilaWizardOn = new Collection<FilaWizardOn>();
-            //FilaWizard02 = new Collection<FilaWizard02>();
+            FilaWizard02 = new Collection<FilaWizard02>();
         }
 
         public virtual ICollection<Client> Clients { get; set; }
         public virtual ICollection<FilaWizardOn> FilaWizardOn { get; set; }
-        //public virtual ICollection<FilaWizard02> FilaWizard02 { get; set; }
+        public virtual ICollection<FilaWizard02> FilaWizard02 { get; set; }
 
         [NotMapped]
         public string CurrentClientId { get; set; }

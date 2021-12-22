@@ -50,7 +50,7 @@ namespace ISystem.WebUI
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Limpar}/{id?}");
-        });
+            });
         }
     }
 }
