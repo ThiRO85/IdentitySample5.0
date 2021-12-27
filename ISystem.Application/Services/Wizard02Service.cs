@@ -148,5 +148,95 @@ namespace ISystem.Application.Services
             var campanhas = await _wizard02Repository.MovimentarCampanhasGetAsync();
             return campanhas;
         }
+
+        public async Task<List<OcorrenciaWizard02View>> Movimentar(OcorrenciaWizard02ViewPesquisa valores)
+        {
+            var ocorrencias = await _wizard02Repository.MovimentarAsync(valores);
+            return ocorrencias;
+        }
+
+        public async Task<string> EditOcorrencia(string ocorrenciaList, string comentario, int? filaId, int? classificacaoId)
+        {
+            var erros = await _wizard02Repository.EditOcorrenciaAsync(ocorrenciaList, comentario, filaId, classificacaoId);
+            return erros;
+        }
+
+        public async Task<List<FilaWizard02>> Fila()
+        {
+            var filas = await _wizard02Repository.FilaAsync();
+            return filas;
+        }
+
+        public async Task<List<GrupoProcessoWizard02>> FilaCreateGet()
+        {
+            var grupoProcesso = await _wizard02Repository.FilaCreateGetAsync();
+            return grupoProcesso;
+        }
+
+        public async Task FilaCreate(FilaWizard02 fila)
+        {
+            await _wizard02Repository.FilaCreateAsync(fila);
+        }
+
+        public async Task<FilaWizard02> FilaEditGet(int? id)
+        {
+            var fila = await _wizard02Repository.FilaEditGetAsync(id);
+            return fila;
+        }
+
+        public async Task FilaEdit(FilaWizard02 fila)
+        {
+            await _wizard02Repository.FilaEditAsync(fila);
+        }
+
+        public async Task<GrupoProcessoWizard02> GrupoProcessoCreateGet()
+        {
+            var grupoProcesso = await _wizard02Repository.GrupoProcessoCreateGetAsync();
+            return grupoProcesso;
+        }
+
+        public async Task GrupoProcessoCreate(GrupoProcessoWizard02 grupoProcesso, params string[] classificacao)
+        {
+            await _wizard02Repository.GrupoProcessoCreateAsync(grupoProcesso, classificacao);
+        }
+
+        public async Task<List<ClassificacaoWizard02>> GrupoProcessoCreateII()
+        {
+            var classificacoesII = await _wizard02Repository.GrupoProcessoCreateIIAsync();
+            return classificacoesII;
+        }
+
+        public async Task<GrupoProcessoWizard02> GrupoProcessoEditGet(int? id)
+        {
+            var grupoProcesso = await _wizard02Repository.GrupoProcessoEditGetAsync(id);
+            return grupoProcesso;
+        }
+
+        public async Task GrupoProcessoEdit(GrupoProcessoWizard02 grupoProcesso, params string[] classificacao)
+        {
+            await _wizard02Repository.GrupoProcessoEditAsync(grupoProcesso, classificacao);
+        }
+
+        public async Task<List<StatusWizard02>> ClassificacaoCreateGet()
+        {
+            var status = await _wizard02Repository.ClassificacaoCreateGetAsync();
+            return status;
+        }
+
+        public async Task ClassificacaoCreate(ClassificacaoWizard02 classificacao)
+        {
+            await _wizard02Repository.ClassificacaoCreateAsync(classificacao);
+        }
+
+        public async Task<ClassificacaoWizard02> ClassificacaoEditGet(int? id)
+        {
+            var classificacao = await _wizard02Repository.ClassificacaoEditGetAsync(id);
+            return classificacao;
+        }
+
+        public async Task ClassificacaoEdit(ClassificacaoWizard02 classificacao)
+        {
+            await _wizard02Repository.ClassificacaoEditAsync(classificacao);
+        }
     }
 }

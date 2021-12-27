@@ -55,7 +55,7 @@ namespace ISystem.WebUI.Controllers
             if (!ModelState.IsValid)
             {
                 return View("Index");
-            }              
+            }
             await _wizard02Service.NovoCliente(cliente);
             return RedirectToAction("CriarOc", new { id = cliente.Id });
         }
@@ -293,6 +293,310 @@ namespace ISystem.WebUI.Controllers
             //ViewBag.FilaId = new SelectList(filas, "Id", "Nome");
             //ViewBag.CampanhaId = new SelectList(campanhas, "Id", "Nome");
             return View();
+        }
+
+        //[Authorize(Roles = "Admin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Movimentar(OcorrenciaWizard02ViewPesquisa valores, string ocorrencaIdList)
+        {
+            foreach (var item in ocorrencaIdList.Replace(";", "\n").Replace("\r", "").Split('\n'))
+            {
+                bool result = int.TryParse(item, out int i);
+                if (result)
+                {
+                    valores.OcorrenciasId.Add(i);
+                }
+            }
+
+            var filas = await _wizard02Service.MovimentarFilasGet();
+            var campanhas = await _wizard02Service.MovimentarCampanhasGet();
+            //ViewBag.FilaId = new SelectList(filas, "Id", "Nome");
+            //ViewBag.CampanhaId = new SelectList(campanhas, "Id", "Nome");
+
+            if ((valores.DtCriacaoFim == null && valores.DtCriacaoInicio != null) || ((valores.DtCriacaoInicio == null && valores.DtCriacaoFim != null)))
+            {
+                ModelState.AddModelError(string.Empty, @"Data Início de Criação ou Fim não está preenchida. Preencha as duas ou nenhuma para seguir");
+            }
+            else if (valores.DtCriacaoInicio != null && valores.DtCriacaoFim != null)
+            {
+                if (valores.DtCriacaoInicio > valores.DtCriacaoFim)
+                {
+                    ModelState.AddModelError(string.Empty, @"Data Início de Criação maior que a Data Fim ");
+                }
+            }
+
+            if ((valores.DtMovimentacaoInicio == null && valores.DtMovimentacaoFim != null) || ((valores.DtMovimentacaoFim == null && valores.DtMovimentacaoInicio != null)))
+            {
+                ModelState.AddModelError(string.Empty, @"Data Início de Movimentação ou Fim não esta preenchida. Preencha as duas ou nenhuma para seguir");
+            }
+            else if (valores.DtMovimentacaoInicio != null && valores.DtMovimentacaoFim != null)
+            {
+                if (valores.DtMovimentacaoInicio > valores.DtMovimentacaoFim)
+                {
+                    ModelState.AddModelError(string.Empty, @"Data Início de Movimentação maior que a Data Fim ");
+                }
+            }
+
+            if ((valores.OcorrenciasId.Count == 0 || valores.OcorrenciasId == null)
+                && valores.DtCriacaoInicio == null
+                && valores.DtMovimentacaoInicio == null
+                && valores.FilaId == null
+                && valores.CampanhaId == null)
+            {
+                ModelState.AddModelError(string.Empty, @"Campos de pesquisa insuficientes para seguir");
+            }
+
+            if (ModelState.IsValid)
+            {
+                var ocorrencias = await _wizard02Service.Movimentar(valores);
+                return View(ocorrencias);
+            }
+            return View();
+        }
+
+        //[Authorize(Roles = "Admin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<JsonResult> EditOcorrencia(string ocorrenciaList, string comentario, int? filaId, int? classificacaoId)
+        {
+            string erros = await _wizard02Service.EditOcorrencia(ocorrenciaList, comentario, filaId, classificacaoId);
+            return Json(erros);
+        }
+
+        //[Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Fila()
+        {
+            var filas = _wizard02Service.Fila();
+            return View(filas);
+        }
+
+        //[Authorize(Roles = "Admin")]
+        public async Task<IActionResult> FilaCreate()
+        {
+            var grupoProcesso = await _wizard02Service.FilaCreateGet();
+            //ViewBag.GrupoWizard02Id = new SelectList(grupoProcesso, "Id", "Nome");
+            return View();
+        }
+
+        //[Authorize(Roles = "Admin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> FilaCreate(FilaWizard02 fila)
+        {
+            if (ModelState.IsValid)
+            {
+                await _wizard02Service.FilaCreate(fila);
+                return RedirectToAction("Fila");
+            }
+            var grupoProcesso = await _wizard02Service.FilaCreateGet();
+            //ViewBag.GrupoWizard02Id = new SelectList(grupoProcesso, "Id", "Nome", fila.GrupoWizard02Id);
+            return View(fila);
+        }
+
+        //[Authorize(Roles = "Admin")]
+        public async Task<IActionResult> FilaEdit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound(); //Atenção! Retorna um StatusCode originalmente.
+            }
+            FilaWizard02 fila = await _wizard02Service.FilaEditGet(id);
+            if (fila == null)
+            {
+                return NotFound();
+            }
+            var grupoProcesso = await _wizard02Service.FilaCreateGet();
+            //ViewBag.GrupoWizard02Id = new SelectList(grupoProcesso, "Id", "Nome", fila.GrupoWizard02Id);
+            return View(fila);
+        }
+
+        //[Authorize(Roles = "Admin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> FilaEdit(FilaWizard02 fila)
+        {
+            if (ModelState.IsValid)
+            {
+                await _wizard02Service.FilaEdit(fila);
+                return RedirectToAction("Fila");
+            }
+            var grupoProcesso = await _wizard02Service.FilaCreateGet();
+            //ViewBag.GrupoWizard02Id = new SelectList(grupoProcesso, "Id", "Nome", fila.GrupoWizard02Id);
+            return View(fila);
+        }
+
+        //[Authorize(Roles = "Admin")]
+        public async Task<ActionResult> GrupoProcesso()
+        {
+            var grupoProcesso = await _wizard02Service.FilaCreateGet();
+            return View(grupoProcesso);
+        }
+
+        //[Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GrupoProcessoCreate()
+        {
+            var grupoProcesso = await _wizard02Service.GrupoProcessoCreateGet();
+            return View(grupoProcesso);
+        }
+
+        //[Authorize(Roles = "Admin")]
+        [HttpPost]
+        public async Task<IActionResult> GrupoProcessoCreate(GrupoProcessoWizard02 grupoProcesso, params string[] classificacao)
+        {
+            if (ModelState.IsValid)
+            {
+                await _wizard02Service.GrupoProcessoCreate(grupoProcesso, classificacao);
+                return RedirectToAction("GrupoProcesso");
+            }
+            var classificacoesII = await _wizard02Service.GrupoProcessoCreateII();
+            return View(new GrupoProcessoWizard02()
+            /*{
+                Nome = grupoProcesso.Nome,
+                ClassificacaoList = classificacoesII.ToList().OrderBy(o => o.ClassificacaoView).Select(x => new SelectListItem()
+                {
+                    Selected = grupoProcesso.ClassificacaoWizard02.Any(a => a.Id == x.Id),
+                    Text = x.ClassificacaoView,
+                    Value = x.Id.ToString()
+                }),
+            }*/);
+        }
+
+        //[Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GrupoProcessoEdit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+            var grupo = await _wizard02Service.GrupoProcessoEditGet(id);
+            if (grupo == null)
+            {
+                return NotFound();
+            }
+            var classificacoesII = await _wizard02Service.GrupoProcessoCreateII();
+            return View(new GrupoProcessoWizard02()
+            /*{
+                Id = grupo.Id,
+                Nome = grupoProcesso.Nome,
+                ClassificacaoList = classificacoesII.ToList().OrderBy(o => o.ClassificacaoView).Select(x => new SelectListItem()
+                {
+                    Selected = grupoProcesso.ClassificacaoWizard02.Any(a => a.Id == x.Id),
+                    Text = x.ClassificacaoView,
+                    Value = x.Id.ToString()
+                }),
+            }*/);
+        }
+
+        //[Authorize(Roles = "Admin")]
+        [HttpPost]
+        public async Task<IActionResult> GrupoProcessoEdit(GrupoProcessoWizard02 grupoProcesso, params string[] classificacao)
+        {
+            var grupo = await _wizard02Service.GrupoProcessoEditGet(grupoProcesso.Id);
+
+            if (ModelState.IsValid)
+            {
+                grupo.Nome = grupoProcesso.Nome;
+                await _wizard02Service.GrupoProcessoEdit(grupoProcesso, classificacao);
+                return RedirectToAction("GrupoProcesso");
+            }
+            var classificacoesII = await _wizard02Service.GrupoProcessoCreateII();
+            return View(new GrupoProcessoWizard02()
+            /*{
+                Id = grupo.Id,
+                Nome = grupo.Nome,
+                ClassificacaoList = classificacoesII.ToList().OrderBy(o => o.ClassificacaoView).Select(x => new SelectListItem()
+                {
+                    Selected = grupo.ClassificacaoWizard02.Any(a => a.Id == x.Id),
+                    Text = x.ClassificacaoView,
+                    Value = x.Id.ToString()
+                }),
+            }*/);
+        }
+
+        //[Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Classificacao()
+        {
+            var classificacoesII = await _wizard02Service.GrupoProcessoCreateII();
+            var classificacoes = classificacoesII.OrderBy(o => o.ClassificacaoView);
+            return View(classificacoes);
+        }
+
+        //[Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ClassificacaoCreate()
+        {
+            var classificacoesII = await _wizard02Service.GrupoProcessoCreateII();
+            //ViewBag.ClassificacaoPaiId = new SelectList(classificacoesII.OrderBy(o => o.ClassificacaoView), "Id", "ClassificacaoView");
+            var filas = await _wizard02Service.MovimentarFilasGet();
+            //ViewBag.FilaId = new SelectList(filas, "Id", "Nome");
+            var status = await _wizard02Service.ClassificacaoCreateGet();
+            //ViewBag.StatusId = new SelectList(status, "Id", "Nome");
+            return View();
+        }
+
+        //[Authorize(Roles = "Admin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]        
+        public async Task<IActionResult> ClassificacaoCreate(ClassificacaoWizard02 classificacao)
+        {
+            if (classificacao.StatusId == null || classificacao.StatusId == 0)
+            {
+                ModelState.AddModelError("", "Status é obrigatório!");
+            }
+            if (ModelState.IsValid)
+            {
+                await _wizard02Service.ClassificacaoCreate(classificacao);
+                return RedirectToAction("Classificacao");
+            }
+            var classificacoesII = await _wizard02Service.GrupoProcessoCreateII();
+            //ViewBag.ClassificacaoPaiId = new SelectList(classificacoesII.OrderBy(o => o.ClassificacaoView), "Id", "ClassificacaoView");
+            var filas = await _wizard02Service.MovimentarFilasGet();
+            //ViewBag.FilaId = new SelectList(filas, "Id", "Nome");
+            return View(classificacao);
+        }
+
+        //[Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ClassificacaoEdit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+            ClassificacaoWizard02 classificacao = await _wizard02Service.ClassificacaoEditGet(id);
+            if (classificacao == null)
+            {
+                return NotFound();
+            }
+            var classificacoesII = await _wizard02Service.GrupoProcessoCreateII();
+            //ViewBag.ClassificacaoPaiId = new SelectList(classificacoesII.OrderBy(o => o.ClassificacaoView), "Id", "ClassificacaoView");
+            var filas = await _wizard02Service.MovimentarFilasGet();
+            //ViewBag.FilaId = new SelectList(filas, "Id", "Nome");
+            var status = await _wizard02Service.ClassificacaoCreateGet();
+            //ViewBag.StatusId = new SelectList(status, "Id", "Nome");
+            return View(classificacao);
+        }
+
+        //[Authorize(Roles = "Admin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]        
+        public async Task<IActionResult> ClassificacaoEdit(ClassificacaoWizard02 classificacao)
+        {
+            if (classificacao.StatusId == null || classificacao.StatusId == 0)
+            {
+                ModelState.AddModelError("", "Status é obrigatório!");
+            }
+            if (ModelState.IsValid)
+            {
+                await _wizard02Service.ClassificacaoEdit(classificacao);
+                return RedirectToAction("Classificacao");
+            }
+            var classificacoesII = await _wizard02Service.GrupoProcessoCreateII();
+            //ViewBag.ClassificacaoPaiId = new SelectList(classificacoesII.OrderBy(o => o.ClassificacaoView), "Id", "ClassificacaoView");
+            var filas = await _wizard02Service.MovimentarFilasGet();
+            //ViewBag.FilaId = new SelectList(filas, "Id", "Nome");
+            var status = await _wizard02Service.ClassificacaoCreateGet();
+            //ViewBag.StatusId = new SelectList(status, "Id", "Nome");
+            return View(classificacao);
         }
     }
 }

@@ -29,5 +29,21 @@ namespace ISystem.Application.Interfaces
         Task CampanhaAtualizar();
         Task<List<FilaWizard02>> MovimentarFilasGet();
         Task<List<CampanhaWizard02>> MovimentarCampanhasGet();
+        Task<List<OcorrenciaWizard02View>> Movimentar(OcorrenciaWizard02ViewPesquisa valores);
+        Task<string> EditOcorrencia(string ocorrenciaList, string comentario, int? filaId, int? classificacaoId);
+        Task<List<FilaWizard02>> Fila();
+        Task<List<GrupoProcessoWizard02>> FilaCreateGet();
+        Task FilaCreate(FilaWizard02 fila);
+        Task<FilaWizard02> FilaEditGet(int? id);
+        Task FilaEdit(FilaWizard02 fila);
+        Task<GrupoProcessoWizard02> GrupoProcessoCreateGet();
+        Task GrupoProcessoCreate(GrupoProcessoWizard02 grupoProcesso, params string[] classificacao);
+        Task<List<ClassificacaoWizard02>> GrupoProcessoCreateII();
+        Task<GrupoProcessoWizard02> GrupoProcessoEditGet(int? id);
+        Task GrupoProcessoEdit(GrupoProcessoWizard02 grupoProcesso, params string[] classificacao);
+        Task<List<StatusWizard02>> ClassificacaoCreateGet();
+        Task ClassificacaoCreate(ClassificacaoWizard02 classificacao);
+        Task<ClassificacaoWizard02> ClassificacaoEditGet(int? id);
+        Task ClassificacaoEdit(ClassificacaoWizard02 classificacao);
     }
 }

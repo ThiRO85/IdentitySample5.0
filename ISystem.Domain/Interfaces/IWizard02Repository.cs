@@ -29,5 +29,21 @@ namespace ISystem.Domain.Interfaces
         Task CampanhaAtualizarAsync();
         Task<List<FilaWizard02>> MovimentarFilasGetAsync(); //Método Movimentar Get!
         Task<List<CampanhaWizard02>> MovimentarCampanhasGetAsync(); //Método Movimentar Get!
+        Task<List<OcorrenciaWizard02View>> MovimentarAsync(OcorrenciaWizard02ViewPesquisa valores);
+        Task<string> EditOcorrenciaAsync(string ocorrenciaList, string comentario, int? filaId, int? classificacaoId);
+        Task<List<FilaWizard02>> FilaAsync();
+        Task<List<GrupoProcessoWizard02>> FilaCreateGetAsync(); //Atenção!
+        Task FilaCreateAsync(FilaWizard02 fila);
+        Task<FilaWizard02> FilaEditGetAsync(int? id);
+        Task FilaEditAsync(FilaWizard02 fila);
+        Task<GrupoProcessoWizard02> GrupoProcessoCreateGetAsync();
+        Task GrupoProcessoCreateAsync(GrupoProcessoWizard02 grupoProcesso, params string[] classificacao);
+        Task<List<ClassificacaoWizard02>> GrupoProcessoCreateIIAsync();
+        Task<GrupoProcessoWizard02> GrupoProcessoEditGetAsync(int? id);
+        Task GrupoProcessoEditAsync(GrupoProcessoWizard02 grupoProcesso, params string[] classificacao);
+        Task<List<StatusWizard02>> ClassificacaoCreateGetAsync();
+        Task ClassificacaoCreateAsync(ClassificacaoWizard02 classificacao);
+        Task<ClassificacaoWizard02> ClassificacaoEditGetAsync(int? id);
+        Task ClassificacaoEditAsync(ClassificacaoWizard02 classificacao);
     }
 }

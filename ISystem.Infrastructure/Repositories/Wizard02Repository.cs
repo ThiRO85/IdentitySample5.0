@@ -391,7 +391,7 @@ namespace ISystem.Infrastructure.Repositories
             {
                 if (item.ClassificacaoId != null)
                 {
-                    var aux2 = _context.ClassificacaoWizard02.FirstOrDefault(x => x.Id == item.ClassificacaoId);
+                    var aux2 = await _context.ClassificacaoWizard02.FirstOrDefaultAsync(x => x.Id == item.ClassificacaoId);
                     var aux = aux2?.ClassificacaoPaiId;
                     var view = "";
                     for (; ; )
@@ -400,7 +400,7 @@ namespace ISystem.Infrastructure.Repositories
                         {
                             break;
                         }
-                        var pai = _context.ClassificacaoWizard02.FirstOrDefault(x => x.Id == aux);
+                        var pai = await _context.ClassificacaoWizard02.FirstOrDefaultAsync(x => x.Id == aux);
                         view = pai.Nome + " > " + view;
                         aux = pai.ClassificacaoPaiId;
                     }
@@ -492,7 +492,7 @@ namespace ISystem.Infrastructure.Repositories
                 campanha.TentativasMax = campanhaUpdate.TentativasMax;
                 campanha.Nome = campanhaUpdate.Nome;
                 campanha.Prioridade = campanhaUpdate.Prioridade;
-            }            
+            }
             await _context.SaveChangesAsync();
         }
 
@@ -575,6 +575,306 @@ namespace ISystem.Infrastructure.Repositories
         {
             var campanhas = await _context.CampanhaWizard02.ToListAsync();
             return campanhas;
+        }
+
+        public async Task<List<OcorrenciaWizard02View>> MovimentarAsync(OcorrenciaWizard02ViewPesquisa valores)
+        {
+            var ocorrencias2 = await _context.OcorrenciaWizard02
+                    .Include(i => i.Eventos)
+                    .Include(i => i.Campanha)
+                    .Include(i => i.Fila)
+                    .Include(i => i.ClienteWizard02)
+                    .Where(x => (x.Finalizado == valores.Finalizado || !x.Finalizado)
+                   && (x.AgendamentoProprio == valores.AgendamentoProprio || !x.AgendamentoProprio)
+                   && (x.FilaId == valores.FilaId || valores.FilaId == null)
+                   && (x.CampanhaId == valores.CampanhaId || valores.CampanhaId == null)
+                   && ((x.DtCriacao >= valores.DtCriacaoInicio && x.DtCriacao <= valores.DtCriacaoFim) || (valores.DtCriacaoInicio == null))
+                   && ((x.Eventos.OrderByDescending(o => o.Id).FirstOrDefault().DtEvento >= valores.DtMovimentacaoInicio && x.Eventos.OrderByDescending(o => o.Id).FirstOrDefault().DtEvento <= valores.DtMovimentacaoFim) || (valores.DtMovimentacaoInicio == null))
+                   && (x.Eventos.OrderByDescending(o => o.Id).FirstOrDefault().ClassificacaoId == valores.ClassificacaoId || valores.ClassificacaoId == 0)
+                   && (valores.OcorrenciasId.Contains(x.Id) || valores.OcorrenciasId.Count == 0)
+                   && x.Eventos.Count > 1)
+                    .OrderBy(x => x.Eventos.Count).ThenBy(x => x.Campanha.Prioridade).ThenByDescending(x => x.ProximoAt).Select(s => new OcorrenciaWizard02View
+                    {
+                        OcorrenciaId = s.Id,
+                        Cliente = s.ClienteWizard02.Nome,
+                        Fila = s.Fila.Nome,
+                        Prioridade = s.Campanha.Prioridade,
+                        ProximoAt = s.ProximoAt,
+                        DtCriacao = s.DtCriacao,
+                        Finalizado = s.Finalizado,
+                        DtMovimentacao = (DateTime)s.Eventos.OrderByDescending(o => o.Id).FirstOrDefault().DtEvento,
+                        ClassificacaoId = s.Eventos.OrderByDescending(o => o.Id).FirstOrDefault().ClassificacaoId
+                    })
+                     .ToListAsync();
+
+            var ocorrencias = await _context.OcorrenciaWizard02
+               .Include(i => i.Eventos)
+               .Include(i => i.Campanha)
+               .Include(i => i.Fila)
+               .Include(i => i.ClienteWizard02)
+               .Where(x => (x.Finalizado == valores.Finalizado || !x.Finalizado)
+              && (x.AgendamentoProprio == valores.AgendamentoProprio || !x.AgendamentoProprio)
+              && (x.FilaId == valores.FilaId || valores.FilaId == null)
+              && (x.CampanhaId == valores.CampanhaId || valores.CampanhaId == null)
+              && ((x.DtCriacao >= valores.DtCriacaoInicio && x.DtCriacao <= valores.DtCriacaoFim) || (valores.DtCriacaoInicio == null))
+              && ((x.Eventos.OrderByDescending(o => o.Id).FirstOrDefault().DtEvento >= valores.DtMovimentacaoInicio && x.Eventos.OrderByDescending(o => o.Id).FirstOrDefault().DtEvento <= valores.DtMovimentacaoFim) || (valores.DtMovimentacaoInicio == null))
+              && (valores.OcorrenciasId.Contains(x.Id) || valores.OcorrenciasId.Count == 0)
+              && valores.ClassificacaoId == 0
+              && x.Eventos.Count == 1)
+               .OrderBy(x => x.Eventos.Count).ThenBy(x => x.Campanha.Prioridade).ThenByDescending(x => x.ProximoAt).Select(s => new OcorrenciaWizard02View
+               {
+                   OcorrenciaId = s.Id,
+                   Cliente = s.ClienteWizard02.Nome,
+                   Fila = s.Fila.Nome,
+                   Prioridade = s.Campanha.Prioridade,
+                   ProximoAt = s.ProximoAt,
+                   DtCriacao = s.DtCriacao,
+                   Finalizado = s.Finalizado,
+                   DtMovimentacao = (DateTime)s.Eventos.OrderByDescending(o => o.Id).FirstOrDefault().DtEvento,
+                   ClassificacaoView = "",
+                   N1 = "",
+                   N2 = ""
+               }).ToListAsync();
+
+            ocorrencias.AddRange(ocorrencias2);
+
+            foreach (var item in ocorrencias)
+            {
+                if (item.ClassificacaoId != null)
+                {
+                    var aux2 = await _context.ClassificacaoWizard02.FirstOrDefaultAsync(x => x.Id == item.ClassificacaoId);
+                    var aux = aux2?.ClassificacaoPaiId;
+                    var view = "";
+                    for (; ; )
+                    {
+                        if (aux == null)
+                        {
+                            break;
+                        }
+
+                        var pai = await _context.ClassificacaoWizard02.FirstOrDefaultAsync(x => x.Id == aux);
+                        view = pai.Nome + " > " + view;
+                        aux = pai.ClassificacaoPaiId;
+                    }
+                    item.ClassificacaoView = view + aux2?.Nome;
+                }
+            }
+            return ocorrencias;
+        }
+
+        public async Task<string> EditOcorrenciaAsync(string ocorrenciaList, string comentario, int? filaId, int? classificacaoId)
+        {
+            var objetoJson = JsonConvert.DeserializeObject(ocorrenciaList);
+            int ocorrenciaId;
+            int cont = 0;
+            int cont2 = 0;
+            string erros = "";
+
+            if (string.IsNullOrWhiteSpace(ocorrenciaList))
+            {
+                erros = "Nenhuma ocorrência selecionada \n";
+            }
+            if (classificacaoId == null || classificacaoId == 0)
+            {
+                erros += "Campo classificação é obrigatório \n";
+            }
+            if (string.IsNullOrWhiteSpace(comentario))
+            {
+                erros += "Campo comentário é obrigatório \n";
+            }
+            if (filaId == null || filaId == 0)
+            {
+                erros += "Campo fila é obrigatório \n";
+            }
+            if (string.IsNullOrWhiteSpace(erros))
+            {
+                foreach (var item in (IEnumerable)objetoJson)
+                {
+                    ocorrenciaId = Convert.ToInt32(item);
+
+                    var valor = await _context.OcorrenciaWizard02.Include(i => i.ClienteWizard02).FirstOrDefaultAsync(x => x.Id == ocorrenciaId);
+
+                    if (valor != null)
+                    {
+                        valor.FilaId = (int)filaId;
+                        //valor.UsersId = User.Identity.GetUserId();
+
+                        EventoWizard02 evento = new EventoWizard02();
+                        var eventoOld = valor.Eventos.OrderByDescending(x => x.Id).FirstOrDefault();
+                        PropertyCopier.Copy(eventoOld, evento);
+
+                        evento.Id = 0;
+                        //evento.UsersId = User.Identity.GetUserId();
+                        evento.FilaId = valor.FilaId;
+                        evento.Classificacao = await _context.ClassificacaoWizard02.FirstOrDefaultAsync(x => x.Id == classificacaoId);
+                        evento.DtEvento = DateTime.Now;
+                        evento.Comentario = comentario;
+                        valor.Agendamento = false;
+                        valor.AgendamentoProprio = false;
+                        valor.Finalizado = evento.Classificacao.Finalizador;
+                        valor.StatusId = evento.Classificacao.StatusId;
+                        valor.Eventos.Add(evento);
+
+                        await _context.SaveChangesAsync();
+                        cont += 1;
+                    }
+                    else
+                    {
+                        cont2 += 1;
+                    }
+                }
+                //return Json(cont + " Ocorrências Alteradas | " + cont2 + " Ocorrências não encontradas");
+            }
+            return erros;
+        }
+
+        public async Task<List<FilaWizard02>> FilaAsync()
+        {
+            var filas = await _context.FilaWizard02.Include(i => i.GrupoWizard02).ToListAsync();
+            return filas;
+        }
+
+        public async Task<List<GrupoProcessoWizard02>> FilaCreateGetAsync()
+        {
+            var grupoProcesso = await _context.GrupoProcessoWizard02.ToListAsync(); //Atenção! Método original não pede uma lista.
+            return grupoProcesso;
+        }
+
+        public async Task FilaCreateAsync(FilaWizard02 fila)
+        {
+            fila.DtCriacao = DateTime.Now;
+            await _context.FilaWizard02.AddAsync(fila);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<FilaWizard02> FilaEditGetAsync(int? id)
+        {
+            FilaWizard02 fila = await _context.FilaWizard02.FindAsync(id);
+            return fila;
+        }
+
+        public async Task FilaEditAsync(FilaWizard02 fila)
+        {
+            _context.Entry(fila).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<GrupoProcessoWizard02> GrupoProcessoCreateGetAsync()
+        {
+            GrupoProcessoWizard02 grupoProcesso = new GrupoProcessoWizard02();
+            List<ClassificacaoWizard02> list = new List<ClassificacaoWizard02>();
+
+            foreach (var item in await _context.ClassificacaoWizard02.Where(x => x.Ativo).ToListAsync())
+            {
+                item.ClassificacaoView = "";
+                var aux = item.ClassificacaoPaiId;
+                for ( ; ; )
+                {
+                    if (aux == null)
+                    {
+                        break;
+                    }
+                    var pai = await _context.ClassificacaoWizard02.FirstOrDefaultAsync(x => x.Id == aux);
+                    item.ClassificacaoView = pai.Nome + " > " + item.ClassificacaoView;
+                    aux = pai.ClassificacaoPaiId;
+                }
+                item.ClassificacaoView += item.Nome;
+                list.Add(item);
+            }
+            //grupoProcesso.ClassificacaoList = new SelectList(list.ToList().OrderBy(o => o.ClassificacaoView), "Id", "ClassificacaoView");
+            return grupoProcesso; //ClassificacaoList não está habilitada em GrupoProcesso!
+        }
+
+        public async Task GrupoProcessoCreateAsync(GrupoProcessoWizard02 grupoProcesso, params string[] classificacao)
+        {
+            if (classificacao != null)
+            {
+                List<ClassificacaoWizard02> classificacoes = new List<ClassificacaoWizard02>();
+
+                foreach (var item in classificacao)
+                {
+                    int id = Convert.ToInt32(item);
+                    classificacoes.Add(await _context.ClassificacaoWizard02.FindAsync(id));
+                }
+                grupoProcesso.ClassificacaoWizard02 = classificacoes;
+            }
+            await _context.GrupoProcessoWizard02.AddAsync(grupoProcesso);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<ClassificacaoWizard02>> GrupoProcessoCreateIIAsync()
+        {
+            List<ClassificacaoWizard02> classificacoesII = new List<ClassificacaoWizard02>();
+
+            foreach (var item in await _context.ClassificacaoWizard02.Where(x => x.Ativo).ToListAsync())
+            {
+                item.ClassificacaoView = "";
+                var aux = item.ClassificacaoPaiId;
+                for ( ; ; )
+                {
+                    if (aux == null)
+                    {
+                        break;
+                    }
+                    var pai = await _context.ClassificacaoWizard02.FirstOrDefaultAsync(x => x.Id == aux);
+                    item.ClassificacaoView = pai.Nome + " > " + item.ClassificacaoView;
+                    aux = pai.ClassificacaoPaiId;
+                }
+                item.ClassificacaoView += item.Nome;
+                classificacoesII.Add(item);
+            }
+            return classificacoesII;
+        }
+
+        public async Task<GrupoProcessoWizard02> GrupoProcessoEditGetAsync(int? id)
+        {
+            var grupoProcesso = await _context.GrupoProcessoWizard02.Include(i => i.ClassificacaoWizard02).FirstOrDefaultAsync(x => x.Id == id);
+            return grupoProcesso;
+        }
+
+        public async Task GrupoProcessoEditAsync(GrupoProcessoWizard02 grupoProcesso, params string[] classificacao)
+        {
+            if (classificacao != null)
+            {
+                List<ClassificacaoWizard02> listaOk = new List<ClassificacaoWizard02>();
+
+                foreach (var item in classificacao)
+                {
+                    int id = Convert.ToInt32(item);
+                    listaOk.Add(await _context.ClassificacaoWizard02.FindAsync(id));
+                }
+                grupoProcesso.ClassificacaoWizard02 = listaOk;
+            }
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<StatusWizard02>> ClassificacaoCreateGetAsync()
+        {
+            var status = await _context.StatusWizard02.ToListAsync();
+            return status;
+        }
+
+        public async Task ClassificacaoCreateAsync(ClassificacaoWizard02 classificacao)
+        {
+            await _context.ClassificacaoWizard02.AddAsync(classificacao);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<ClassificacaoWizard02> ClassificacaoEditGetAsync(int? id)
+        {
+            ClassificacaoWizard02 classificacao = await _context.ClassificacaoWizard02.FindAsync(id);
+            return classificacao;
+        }
+
+        public async Task ClassificacaoEditAsync(ClassificacaoWizard02 classificacao)
+        {
+            _context.Entry(classificacao).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+        }
+
+        public void Dispose(bool disposing)
+        {
+            throw new NotImplementedException();
         }
     }
 }
