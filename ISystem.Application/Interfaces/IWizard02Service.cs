@@ -7,11 +7,18 @@ namespace ISystem.Application.Interfaces
     public interface IWizard02Service
     {
         Task<List<ClienteWizard02>> Index(string nome, string telefone1, string cpf, string email);
-        Task<ClienteWizard02> NovoCliente(ClienteWizard02 cliente);
+        Task NovoCliente(ClienteWizard02 cliente);
         Task<List<EventoWizard02>> RegraRenitencia(EventoWizard02 evento, bool reprocessando);
         Task<OcorrenciaWizard02> CriarOcorrencia(int? id);
-        Task<OcorrenciaWizard02> ReseteOcorrencia(int id);
+        Task ReseteOcorrencia(int id);
         Task<OcorrenciaWizard02> Roleta();
+        Task<OcorrenciaWizard02> AtendimentoOcorrenciaGet(int? ocorrenciaId, string userid);
+        Task AtendimentoRetornoGet(OcorrenciaWizard02 ocorrencia, string userid);
+        Task<ClienteWizard02> AtendimentoEventoCliente(EventoWizard02 evento);
+        Task<OcorrenciaWizard02> AtendimentoEventoOcorrencia(EventoWizard02 evento);
+        Task<ClassificacaoWizard02> AtendimentoEventoClassificacao(EventoWizard02 evento, int? classificacaoId);
+        Task AtendimentoListaEventos(List<EventoWizard02> listaEventos);
+        Task<ClassificacaoWizard02> AtendimentoPai(int? aux);
         Task<FilaWizard02> GetFila(int id);
         Task<List<object>> GetFilaUsuario(int id);
         Task<string> FilaEditUsuario(string userIdList, int id, bool removerUsuario);

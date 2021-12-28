@@ -17,20 +17,19 @@ namespace ISystem.Application.Services
 
         public async Task<List<ClienteWizard02>> Index(string nome, string telefone1, string cpf, string email)
         {
-            var list = await _wizard02Repository.IndexAsync(nome, telefone1, cpf, email);
-            return list;
+            var clientes = await _wizard02Repository.IndexAsync(nome, telefone1, cpf, email);
+            return clientes;
         }
 
-        public async Task<ClienteWizard02> NovoCliente(ClienteWizard02 cliente)
+        public async Task NovoCliente(ClienteWizard02 cliente)
         {
-            var novoCliente = await _wizard02Repository.NovoClienteAsync(cliente);
-            return novoCliente;
+            await _wizard02Repository.NovoClienteAsync(cliente);
         }
 
         public async Task<List<EventoWizard02>> RegraRenitencia(EventoWizard02 evento, bool reprocessando)
         {
-            var regraRenitencia = await _wizard02Repository.RegraRenitenciaAsync(evento, reprocessando);
-            return regraRenitencia;
+            var eventos = await _wizard02Repository.RegraRenitenciaAsync(evento, reprocessando);
+            return eventos;
         }
 
         public async Task<OcorrenciaWizard02> CriarOcorrencia(int? id)
@@ -39,16 +38,44 @@ namespace ISystem.Application.Services
             return ocorrencia;
         }
 
-        public async Task<OcorrenciaWizard02> ReseteOcorrencia(int id)
+        public async Task ReseteOcorrencia(int id)
         {
-            var ocorrencia = await _wizard02Repository.ReseteOcorrenciaAsync(id);
-            return ocorrencia;
+            await _wizard02Repository.ReseteOcorrenciaAsync(id);
         }
 
         public async Task<OcorrenciaWizard02> Roleta()
         {
             var ocorrencia = await _wizard02Repository.RoletaAsync();
             return ocorrencia;
+        }
+
+        public async Task<OcorrenciaWizard02> AtendimentoOcorrenciaGet(int? ocorrenciaId, string userid)
+        {
+            var ocorrencia = await _wizard02Repository.AtendimentoOcorrenciaGetAsync(ocorrenciaId, userid);
+            return ocorrencia;
+        }
+
+        public async Task AtendimentoRetornoGet(OcorrenciaWizard02 ocorrencia, string userid)
+        {
+            await _wizard02Repository.AtendimentoRetornoGetAsync(ocorrencia, userid);
+        }
+
+        public async Task<ClienteWizard02> AtendimentoEventoCliente(EventoWizard02 evento)
+        {
+            var eventoCliente = await _wizard02Repository.AtendimentoEventoClienteAsync(evento);
+            return eventoCliente;
+        }
+
+        public async Task<OcorrenciaWizard02> AtendimentoEventoOcorrencia(EventoWizard02 evento)
+        {
+            var eventoOcorrencia = await _wizard02Repository.AtendimentoEventoOcorrenciaAsync(evento);
+            return eventoOcorrencia;
+        }
+
+        public async Task<ClassificacaoWizard02> AtendimentoEventoClassificacao(EventoWizard02 evento, int? classificacaoId)
+        {
+            var eventoClassificacao = await _wizard02Repository.AtendimentoEventoClassificacaoAsync(evento, classificacaoId);
+            return eventoClassificacao;
         }
 
         public async Task<FilaWizard02> GetFila(int id)
@@ -237,6 +264,17 @@ namespace ISystem.Application.Services
         public async Task ClassificacaoEdit(ClassificacaoWizard02 classificacao)
         {
             await _wizard02Repository.ClassificacaoEditAsync(classificacao);
+        }
+
+        public async Task AtendimentoListaEventos(List<EventoWizard02> listaEventos)
+        {
+            await _wizard02Repository.AtendimentoListaEventosAsync(listaEventos);
+        }
+
+        public async Task<ClassificacaoWizard02> AtendimentoPai(int? aux)
+        {
+            var pai = await _wizard02Repository.AtendimentoPaiAsync(aux);
+            return pai;
         }
     }
 }

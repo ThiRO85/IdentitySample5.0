@@ -1,10 +1,12 @@
 ﻿using ISystem.Application.Interfaces;
+using ISystem.Application.Methods;
 using ISystem.Domain.Entities;
 using ISystem.Domain.Entities.Wizard02;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace ISystem.WebUI.Controllers
@@ -43,15 +45,34 @@ namespace ISystem.WebUI.Controllers
         //    {
         //        ModelState.AddModelError("", "Falha no Login Novax");
         //    }
-        //    var lista = await _wizard02Service.Index(nome, telefone1, cpf, email);
+        //    var clientes = await _wizard02Service.Index(nome, telefone1, cpf, email);
 
-        //    return View(lista);
+        //    return View(clientes);
         //}
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> NovoCliente(ClienteWizard02 cliente)
         {
+            if (string.IsNullOrWhiteSpace(cliente.Nome)
+              && string.IsNullOrWhiteSpace(cliente.Telefone1)
+              && string.IsNullOrWhiteSpace(cliente.Email)
+              && string.IsNullOrWhiteSpace(cliente.Cpf))
+            {
+                ModelState.AddModelError("", @"Preencha pelo menos um dos campos");
+            }
+            if (string.IsNullOrWhiteSpace(cliente.Cpf))
+            {
+                ModelState.AddModelError("", @"CPF é obrigatório");
+            }
+            if (string.IsNullOrWhiteSpace(cliente.Email))
+            {
+                ModelState.AddModelError("", @"Email é obrigatório");
+            }
+            if (string.IsNullOrWhiteSpace(cliente.Telefone1))
+            {
+                ModelState.AddModelError("", @"Telefone é obrigatório");
+            }
             if (!ModelState.IsValid)
             {
                 return View("Index");
@@ -63,8 +84,8 @@ namespace ISystem.WebUI.Controllers
         [NonAction]
         public async Task<List<EventoWizard02>> RegraRenitencia(EventoWizard02 evento, bool reprocessando)
         {
-            List<EventoWizard02> listaEvento = await _wizard02Service.RegraRenitencia(evento, reprocessando);
-            return listaEvento;
+            List<EventoWizard02> eventos = await _wizard02Service.RegraRenitencia(evento, reprocessando);
+            return eventos;
         }
 
         public async Task<IActionResult> CriarOc(int? id)
@@ -76,7 +97,7 @@ namespace ISystem.WebUI.Controllers
         //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> ReseteOcorrencia(int id)
         {
-            var ocorrencia = await _wizard02Service.ReseteOcorrencia(id);
+            await _wizard02Service.ReseteOcorrencia(id);
             return RedirectToAction("Atendimento", new { ocorrenciaId = id });
         }
 
@@ -90,6 +111,321 @@ namespace ISystem.WebUI.Controllers
                 return RedirectToAction("Index");
             }
             return RedirectToAction("Atendimento", new { ocorrenciaId = ocorrencia.Id });
+        }
+
+        public async Task<IActionResult> Atendimento(int? ocorrenciaId, string telefone, string ligacaoId)
+        {
+            //var userId = User.Identity.GetUserId();
+            var data = DateTime.Now;
+            if (ocorrenciaId == null)
+            {
+                return NotFound();
+            }
+            //var userid = User.Identity.GetUserId();
+            var userid = "teste"; //Paliativo pra não dar erro no método.
+            var ocorrencia = await _wizard02Service.AtendimentoOcorrenciaGet(ocorrenciaId, userid);
+            if (ocorrencia == null)
+            {
+                TempData["Message"] = "Ocorrência não localizada ou já finalizada";
+                return RedirectToAction("Index");
+            }
+            else if (ocorrencia.ProximoAt >= data && ocorrencia.UsersId != userid)
+            {
+                var tempo = ocorrencia.ProximoAt - data;
+                TempData["Message"] = "Ocorrência em intervalo de tabulação, restam: " + tempo.Minutes + " Minutos";
+                return RedirectToAction("Index");
+            }
+            //else if (ocorrencia.UsersId != userId && ocorrencia.AgendamentoProprio)
+            //{
+            //    TempData["Message"] = "Ocorrência com Agendamento Próprio. Você não tem permissão para atuar";
+            //    return RedirectToAction("Index");
+            //}
+            else if (!ocorrencia.Campanha.Ativo)
+            {
+                TempData["Message"] = "Campanha inativa";
+                return RedirectToAction("Index");
+            }
+            else if (!ocorrencia.ClienteWizard02.Ativo)
+            {
+                TempData["Message"] = "Cliente inativo";
+                return RedirectToAction("Index");
+            }
+            //else if (ocorrencia.UsersId != userId && ocorrencia.AgendamentoProprio)
+            //{
+            //    TempData["Message"] = "Ocorrência com Agendamento Próprio. Você não tem permissão para atuar";
+            //    return RedirectToAction("Index");
+            //}
+
+            await _wizard02Service.AtendimentoRetornoGet(ocorrencia, userid);
+            var retorno = ocorrencia.Eventos.OrderByDescending(x => x.Id).FirstOrDefault();
+            retorno.DtAberturaEvento = DateTime.Now;
+            retorno.TelefoneDiscador = telefone;
+            retorno.LigacaoId = ligacaoId;
+            return View(retorno);
+        }
+        
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Atendimento(EventoWizard02 eventoWizard02, int? classificacaoId, bool finalizado)
+        {
+            var data = DateTime.Now;
+            var dataMenos20 = DateTime.Now.AddMinutes(-60);
+
+            eventoWizard02.ClienteWizard02 = await _wizard02Service.AtendimentoEventoCliente(eventoWizard02);
+            eventoWizard02.Ocorrencia = await _wizard02Service.AtendimentoEventoOcorrencia(eventoWizard02);
+
+            //var userid = User.Identity.GetUserId();
+
+            //if (eventoWizard02.Ocorrencia != null && eventoWizard02.Ocorrencia.ProximoAt.AddMinutes(60) >= data && eventoWizard02.Ocorrencia.UsersId != userid)
+            //{
+            //    var tempo = eventoWizard02.Ocorrencia.ProximoAt.AddMinutes(60) - data;
+            //    TempData["Message"] = "Ocorrência em intevalo de tabulação. Restam " + tempo.Minutes + " minutos";
+            //    return RedirectToAction("Index");
+            //}
+            if (eventoWizard02.ClienteWizard02 == null)
+            {
+                TempData["Message"] = "Falha ao Localizar o Cliente. Não registrado";
+                return RedirectToAction("Index");
+            }
+            if (classificacaoId == null || classificacaoId == 0)
+            {
+                ModelState.AddModelError(string.Empty, @"Selecione uma Classificação");
+            }
+            else
+            {
+                eventoWizard02.Classificacao = await _wizard02Service.AtendimentoEventoClassificacao(eventoWizard02, classificacaoId);
+
+                if (eventoWizard02.Classificacao.Classificacoes.Count() > 0)
+                {
+                    ModelState.AddModelError(string.Empty, @"Selecione uma Classificação válida");
+                }
+                if (string.IsNullOrWhiteSpace(eventoWizard02.Telefone1) &&
+                    string.IsNullOrWhiteSpace(eventoWizard02.Telefone2) &&
+                    string.IsNullOrWhiteSpace(eventoWizard02.Telefone3) &&
+                    string.IsNullOrWhiteSpace(eventoWizard02.Telefone4))
+                {
+                    ModelState.AddModelError(string.Empty, @"Preencha um telefone");
+                }
+                if (!string.IsNullOrWhiteSpace(eventoWizard02.Email))
+                {
+                    Regex regex =
+                        new Regex(
+                            @"^(([A-Za-z0-9]+_+)|([A-Za-z0-9]+\-+)|([A-Za-z0-9]+\.+)|([A-Za-z0-9]+\++))*[A-Za-z0-9_]+@((\w+\-+)|(\w+\.))*\w{1,63}\.[a-zA-Z]{2,6}$");
+                    Match match = regex.Match(eventoWizard02.Email);
+                    if (!match.Success)
+                    {
+                        ModelState.AddModelError(string.Empty, @"Formato de e-mail incorreto");
+                    }
+                }
+                if (string.IsNullOrWhiteSpace(eventoWizard02.CodCliente))
+                {
+                    ModelState.AddModelError(string.Empty, @"Lead Id é obrigatório");
+                }
+                if (eventoWizard02.Classificacao.Agendamento)
+                {
+                    if (eventoWizard02.DtAgendado == null)
+                    {
+                        ModelState.AddModelError("",
+                            @"Favor Selecionar uma data para agendamento");
+                    }
+                    if (eventoWizard02.DtAgendado <= data)
+                    {
+                        ModelState.AddModelError("",
+                            @"Favor Selecionar uma data para agendamento maior que a data atual");
+                    }
+                }
+                if (string.IsNullOrWhiteSpace(eventoWizard02.Comentario))
+                    ModelState.AddModelError("", @"Comentario é obrigatório");
+
+                if (string.IsNullOrWhiteSpace(eventoWizard02.Nome))
+                    ModelState.AddModelError("", @"Nome é obrigatório");
+
+                if (string.IsNullOrWhiteSpace(eventoWizard02.Email))
+                    ModelState.AddModelError("", @"Email é obrigatório");
+
+                if (string.IsNullOrWhiteSpace(eventoWizard02.Telefone1) && string.IsNullOrWhiteSpace(eventoWizard02.Telefone2) && string.IsNullOrWhiteSpace(eventoWizard02.Telefone3) && string.IsNullOrWhiteSpace(eventoWizard02.Telefone4))
+                    ModelState.AddModelError("", @"Pelo menos um telefone é obrigatório");
+
+                int[] regra1 = new int[] { 87, 89, 90, 91, 93, 97, 98, 99, 101, 102, 103, 104, 164, 166, 168 };
+
+                if (regra1.Any(x => x == eventoWizard02.ClassificacaoId))
+                {
+                    if (string.IsNullOrWhiteSpace(eventoWizard02.Cpf))
+                        ModelState.AddModelError("", @"Cpf é obrigatório");
+
+                    if (string.IsNullOrWhiteSpace(eventoWizard02.Rg))
+                        ModelState.AddModelError("", @"Rg é obrigatório");
+
+                    if (string.IsNullOrWhiteSpace(eventoWizard02.Unidade))
+                        ModelState.AddModelError("", @"Unidade é obrigatório");
+
+                    if (string.IsNullOrWhiteSpace(eventoWizard02.MotivoInteresse))
+                        ModelState.AddModelError("", @"MotivoInteresse é obrigatório");
+
+                    if (string.IsNullOrWhiteSpace(eventoWizard02.NivelIdioma))
+                        ModelState.AddModelError("", @"NivelIdioma é obrigatório");
+
+                    if (eventoWizard02.DtNascimento == null)
+                        ModelState.AddModelError("", @"DtNascimento é obrigatório");
+
+                    if (string.IsNullOrWhiteSpace(eventoWizard02.Cep))
+                        ModelState.AddModelError("", @"Cep é obrigatório");
+
+                    if (string.IsNullOrWhiteSpace(eventoWizard02.Logradouro))
+                        ModelState.AddModelError("", @"Logradouro é obrigatório");
+
+                    if (string.IsNullOrWhiteSpace(eventoWizard02.Numero))
+                        ModelState.AddModelError("", @"Numero é obrigatório");
+                }
+                int[] regra2 = new int[] { 87, 89, 93, 97, 98, 102, 164, 166, 168 };
+
+                if (regra2.Any(x => x == eventoWizard02.ClassificacaoId))
+                {
+                    if (eventoWizard02.DtPromessa == null)
+                        ModelState.AddModelError("", @"DtPromessa é obrigatório");
+                }
+
+                int[] regra3 = new int[] { 87, 89, 90, 91, 93, 97, 98, 99, 101, 102, 103, 104, 164, 166, 168 };
+
+                if (regra3.Any(x => x == eventoWizard02.ClassificacaoId))
+                {
+                    if (string.IsNullOrWhiteSpace(eventoWizard02.HorarioCurso))
+                        ModelState.AddModelError("", @"HorarioCurso é obrigatório");
+
+                    if (string.IsNullOrWhiteSpace(eventoWizard02.DiaSemana))
+                        ModelState.AddModelError("", @"DiaSemana é obrigatório");
+                }
+
+                int[] regra4 = new int[] { 165, 167, 169 };
+
+                if (regra4.Any(x => x == eventoWizard02.ClassificacaoId))
+                {
+                    if (eventoWizard02.DtAgendamentoVisita == null)
+                        ModelState.AddModelError("", @"Data Agendamento da Visita é obrigatório");
+
+                    if (string.IsNullOrWhiteSpace(eventoWizard02.MotivoInteresse))
+                        ModelState.AddModelError("", @"MotivoInteresse é obrigatório");
+
+                    if (string.IsNullOrWhiteSpace(eventoWizard02.NivelIdioma))
+                        ModelState.AddModelError("", @"NivelIdioma é obrigatório");
+
+                    if (string.IsNullOrWhiteSpace(eventoWizard02.Unidade))
+                        ModelState.AddModelError("", @"Unidade é obrigatório");
+
+                    if (eventoWizard02.DtNascimento == null)
+                        ModelState.AddModelError("", @"DtNascimento é obrigatório");
+                }
+            }
+            if (ModelState.IsValid)
+            {
+                if (eventoWizard02.Nome == null)
+                {
+                    eventoWizard02.Nome = "";
+                }
+                if (eventoWizard02.Telefone1 == null)
+                {
+                    eventoWizard02.Telefone1 = "";
+                }
+                if (eventoWizard02.Email == null)
+                {
+                    eventoWizard02.Email = "";
+                }
+                if (eventoWizard02.Cpf == null)
+                {
+                    eventoWizard02.Cpf = "";
+                }
+                var idclient = eventoWizard02.ClienteWizard02.Id;
+                PropertyCopier.Copy(eventoWizard02, eventoWizard02.ClienteWizard02);
+                eventoWizard02.ClienteWizard02.Id = idclient;
+                eventoWizard02.DtEvento = DateTime.Now;
+                //eventoWizard02.UsersId = userid;
+                eventoWizard02.Ocorrencia.Finalizado = eventoWizard02.Classificacao.Finalizador;
+
+                if (string.IsNullOrWhiteSpace(eventoWizard02.Telefone1)
+                    && string.IsNullOrWhiteSpace(eventoWizard02.Telefone2)
+                    && string.IsNullOrWhiteSpace(eventoWizard02.Telefone3)
+                    && string.IsNullOrWhiteSpace(eventoWizard02.Telefone4))
+                {
+                    eventoWizard02.Ocorrencia.Finalizado = true;
+                }
+
+                eventoWizard02.Ocorrencia.Agendamento = eventoWizard02.Classificacao.Agendamento;
+                eventoWizard02.Ocorrencia.AgendamentoProprio = eventoWizard02.Classificacao.AgendamentoProprio;
+
+                if (eventoWizard02.Ocorrencia.ApiId != null)
+                {
+                    eventoWizard02.Ocorrencia.ModificadoApi = true;
+                }
+                if (eventoWizard02.Classificacao.Agendamento)
+                {
+                    eventoWizard02.Ocorrencia.ProximoAt = (DateTime)eventoWizard02.DtAgendado;
+                }
+                else
+                {
+                    eventoWizard02.Ocorrencia.ProximoAt = DateTime.Now.AddMinutes(eventoWizard02.Classificacao.RetornoEmMin);
+                }
+                if (eventoWizard02.Classificacao.FilaId != null)
+                {
+                    eventoWizard02.Ocorrencia.Fila = eventoWizard02.Classificacao.Fila;
+                }
+
+                eventoWizard02.Fila = eventoWizard02.Ocorrencia.Fila;
+                eventoWizard02.Ocorrencia.StatusId = eventoWizard02.Classificacao.StatusId;
+                eventoWizard02.Ocorrencia.Tentativas = eventoWizard02.Ocorrencia.Tentativas + 1;
+
+                if (eventoWizard02.Classificacao.ZeraTentativa)
+                {
+                    eventoWizard02.Ocorrencia.Tentativas = 0;
+                }
+                if (eventoWizard02.Ocorrencia.Eventos.Any(a => a.ClassificacaoId == 16) || eventoWizard02.Ocorrencia.Eventos.Any(a => a.ClassificacaoId == 17) || eventoWizard02.Ocorrencia.Eventos.Any(a => a.ClassificacaoId == 41) || eventoWizard02.Ocorrencia.Eventos.Any(a => a.ClassificacaoId == 72))
+                {
+                    if ((eventoWizard02.Ocorrencia.Campanha.TentativasMax * 2) <= eventoWizard02.Ocorrencia.Tentativas && eventoWizard02.Ocorrencia.FilaId != 2)
+                    {
+                        eventoWizard02.Ocorrencia.Finalizado = true;
+                    }
+                }
+                else if (eventoWizard02.Ocorrencia.Campanha.TentativasMax <= eventoWizard02.Ocorrencia.Tentativas && eventoWizard02.Ocorrencia.FilaId != 2)
+                {
+                    eventoWizard02.Ocorrencia.Finalizado = true;
+                }
+
+                List<EventoWizard02> listaEventos = await _wizard02Service.RegraRenitencia(eventoWizard02, false);
+                await _wizard02Service.AtendimentoListaEventos(listaEventos);
+
+                if (listaEventos.FirstOrDefault().Ocorrencia.Finalizado || finalizado)
+                {
+                    TempData["Message"] = "Registrado, Ocorrencia => " + eventoWizard02.Ocorrencia.Id;
+                    return RedirectToAction("Index");
+                }
+                ModelState.AddModelError("", @"Registrado");
+            }
+            foreach (var item in eventoWizard02.Ocorrencia.Eventos)
+            {
+                item.ClassificacaoView = "";
+                var aux = item.Classificacao?.ClassificacaoPaiId;
+                for ( ; ; )
+                {
+                    if (aux == null)
+                    {
+                        break;
+                    }
+
+                    var pai = await _wizard02Service.AtendimentoPai(aux);
+                    item.ClassificacaoView = pai.Nome + " > " + item.ClassificacaoView;
+                    aux = pai.ClassificacaoPaiId;
+                }
+                item.ClassificacaoView += item.Classificacao?.Nome;
+            }
+
+            return View(eventoWizard02);
+        }
+
+        //[Authorize(Roles = "Admin")]
+        public async Task<ActionResult> Controle()
+        {
+            var filas = await _wizard02Service.MovimentarFilasGet();
+            //ViewBag.Filas = new SelectList(filas, "Id", "Nome");
+            return View();
         }
 
         //public async Task<JsonResult> GetFila(int id)
@@ -367,7 +703,7 @@ namespace ISystem.WebUI.Controllers
         //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> Fila()
         {
-            var filas = _wizard02Service.Fila();
+            var filas = await _wizard02Service.Fila();
             return View(filas);
         }
 

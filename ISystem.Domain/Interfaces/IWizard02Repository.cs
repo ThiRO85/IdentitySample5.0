@@ -7,11 +7,18 @@ namespace ISystem.Domain.Interfaces
     public interface IWizard02Repository 
     {
         Task<List<ClienteWizard02>> IndexAsync(string nome, string telefone1, string cpf, string email);
-        Task<ClienteWizard02> NovoClienteAsync(ClienteWizard02 cliente);
+        Task NovoClienteAsync(ClienteWizard02 cliente);
         Task<List<EventoWizard02>> RegraRenitenciaAsync(EventoWizard02 evento, bool reprocessando);
         Task<OcorrenciaWizard02> CriarOcorrenciaAsync(int? id);
-        Task<OcorrenciaWizard02> ReseteOcorrenciaAsync(int id);
+        Task ReseteOcorrenciaAsync(int id);
         Task<OcorrenciaWizard02> RoletaAsync();
+        Task<OcorrenciaWizard02> AtendimentoOcorrenciaGetAsync(int? ocorrenciaId, string userid);
+        Task AtendimentoRetornoGetAsync(OcorrenciaWizard02 ocorrencia, string userid);
+        Task<ClienteWizard02> AtendimentoEventoClienteAsync(EventoWizard02 evento);
+        Task<OcorrenciaWizard02> AtendimentoEventoOcorrenciaAsync(EventoWizard02 evento);
+        Task<ClassificacaoWizard02> AtendimentoEventoClassificacaoAsync(EventoWizard02 evento, int? classificacaoId);
+        Task AtendimentoListaEventosAsync(List<EventoWizard02> listaEventos);
+        Task<ClassificacaoWizard02> AtendimentoPaiAsync(int? aux);
         Task<FilaWizard02> GetFilaAsync(int id);
         Task<List<object>> GetFilaUsuarioAsync(int id);
         Task<string> FilaEditUsuarioAsync(string userIdList, int id, bool removerUsuario);

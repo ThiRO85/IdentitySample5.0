@@ -1,7 +1,6 @@
 ﻿using ISystem.Application.Methods;
 using ISystem.Domain.Entities.Wizard02;
 using ISystem.Domain.Interfaces;
-using ISystem.Domain.Validation;
 using ISystem.Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -25,7 +24,7 @@ namespace ISystem.Infrastructure.Repositories
 
         public async Task<List<ClienteWizard02>> IndexAsync(string nome, string telefone1, string cpf, string email)
         {
-            var lista = await _context.ClienteWizard02.Where(x =>
+            var clientes = await _context.ClienteWizard02.Where(x =>
                         (x.Nome.Contains(nome) || nome == null)
                         && (x.Telefone1.Contains(telefone1) || x.Telefone1 == null)
                         && (x.Telefone2.Contains(telefone1) || x.Telefone2 == null)
@@ -35,14 +34,12 @@ namespace ISystem.Infrastructure.Repositories
                         && x.Ativo
                         && x.Cpf.Contains(cpf)).ToListAsync();
 
-            lista.Take(10);
-            return lista;
+            clientes.Take(10);
+            return clientes;
         }
 
-        public async Task<ClienteWizard02> NovoClienteAsync(ClienteWizard02 cliente)
+        public async Task NovoClienteAsync(ClienteWizard02 cliente)
         {
-            //ModelStateDictionary model = new ModelStateDictionary(); //Atenção!
-
             if (cliente.Nome == null)
             {
                 cliente.Nome = "";
@@ -58,32 +55,10 @@ namespace ISystem.Infrastructure.Repositories
             if (cliente.Cpf == null)
             {
                 cliente.Cpf = "";
-            }
-            if (string.IsNullOrWhiteSpace(cliente.Nome)
-              && string.IsNullOrWhiteSpace(cliente.Telefone1)
-              && string.IsNullOrWhiteSpace(cliente.Email)
-              && string.IsNullOrWhiteSpace(cliente.Cpf))
-            {
-                throw new DomainExceptionValidation("Preencha pelo menos um dos campos");
-                //model.AddModelError("", @"Preencha pelo menos um dos campos");
-            }
-            if (string.IsNullOrWhiteSpace(cliente.Cpf))
-            {
-                throw new DomainExceptionValidation("CPF é obrigatório");
-            }
-            if (string.IsNullOrWhiteSpace(cliente.Email))
-            {
-                throw new DomainExceptionValidation("Email é obrigatório");
-            }
-            if (string.IsNullOrWhiteSpace(cliente.Telefone1))
-            {
-                throw new DomainExceptionValidation("Telefone é obrigatório");
-            }
-
+            }           
             cliente.DtCriacao = DateTime.Now;
             await _context.AddAsync(cliente);
             await _context.SaveChangesAsync();
-            return cliente;
         }
 
         public async Task<List<EventoWizard02>> RegraRenitenciaAsync(EventoWizard02 evento, bool reprocessando)
@@ -99,12 +74,12 @@ namespace ISystem.Infrastructure.Repositories
                .OrderByDescending(o => o.Id)
                .FirstOrDefaultAsync();
 
-            List<EventoWizard02> listaEvento = new List<EventoWizard02>();
+            List<EventoWizard02> eventos = new List<EventoWizard02>();
             if (regra != null)
             {
                 if (!reprocessando)
                     evento.Ocorrencia.ProximoAt = DateTime.Now.AddMinutes(regra.IntervaloRetorno);
-                listaEvento.Add(evento);
+                eventos.Add(evento);
 
                 if (regra.EnviarParaClassificacaoId != null
                     && !evento.Ocorrencia.Finalizado
@@ -118,13 +93,13 @@ namespace ISystem.Infrastructure.Repositories
                     newObject.Classificacao = await _context.ClassificacaoWizard02.FirstOrDefaultAsync(x => x.Id == regra.EnviarParaClassificacaoId);
                     newObject.Ocorrencia.Finalizado = newObject.Classificacao.Finalizador;
                     newObject.Ocorrencia.StatusId = newObject.Classificacao.StatusId;
-                    listaEvento.Add(newObject);
+                    eventos.Add(newObject);
                 }
             }
             else
-                listaEvento.Add(evento);
+                eventos.Add(evento);
 
-            return listaEvento;
+            return eventos;
         }
 
         public async Task<OcorrenciaWizard02> CriarOcorrenciaAsync(int? id)
@@ -164,7 +139,7 @@ namespace ISystem.Infrastructure.Repositories
             return ocorrencia;
         }
 
-        public async Task<OcorrenciaWizard02> ReseteOcorrenciaAsync(int id)
+        public async Task ReseteOcorrenciaAsync(int id)
         {
             var ocorrencia = await _context.OcorrenciaWizard02.FindAsync(id);
             if (!ocorrencia.Finalizado)
@@ -174,7 +149,6 @@ namespace ISystem.Infrastructure.Repositories
                 ocorrencia.AgendamentoProprio = false;
                 await _context.SaveChangesAsync();
             }
-            return ocorrencia;
         }
 
         public async Task<OcorrenciaWizard02> RoletaAsync()
@@ -198,6 +172,73 @@ namespace ISystem.Infrastructure.Repositories
                 .FirstOrDefaultAsync();
 
             return ocorrencia;
+        }
+
+        public async Task<OcorrenciaWizard02> AtendimentoOcorrenciaGetAsync(int? ocorrenciaId, string userid)
+        {
+            var ocorrencia = await _context.OcorrenciaWizard02
+                .Include(i => i.Campanha)
+                .Include(i => i.ClienteWizard02.IndicadoPor)
+                .Include(i => i.Eventos)
+                .Include(i => i.Eventos.Select(ii => ii.Classificacao))
+                .FirstOrDefaultAsync(x => x.Id == ocorrenciaId && x.Finalizado == false /*&& x.Fila.Users.Any(a => a.Id == userid)*/);
+
+            return ocorrencia;
+        }
+
+        public async Task AtendimentoRetornoGetAsync(OcorrenciaWizard02 ocorrencia, string userid)
+        {
+            foreach (var item in ocorrencia.Eventos)
+            {
+                item.ClassificacaoView = "";
+                var aux = item.Classificacao?.ClassificacaoPaiId;
+                for ( ; ; )
+                {
+                    if (aux == null)
+                    {
+                        break;
+                    }
+                    var pai = await _context.ClassificacaoWizard02.FirstOrDefaultAsync(x => x.Id == aux);
+                    item.ClassificacaoView = pai.Nome + " > " + item.ClassificacaoView;
+                    aux = pai.ClassificacaoPaiId;
+                }
+                item.ClassificacaoView += item.Classificacao?.Nome;
+            }
+
+            ocorrencia.UsersId = userid;
+            ocorrencia.ProximoAt = DateTime.Now.AddMinutes(60);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<ClienteWizard02> AtendimentoEventoClienteAsync(EventoWizard02 evento)
+        {
+            evento.ClienteWizard02 = await _context.ClienteWizard02.Include(i => i.IndicadoPor)
+                    .FirstOrDefaultAsync(x => x.Id == evento.ClienteWizard02.Id);
+            return evento.ClienteWizard02;
+        }
+
+        public async Task<OcorrenciaWizard02> AtendimentoEventoOcorrenciaAsync(EventoWizard02 evento)
+        {
+            evento.Ocorrencia = await _context.OcorrenciaWizard02.Include(i => i.Fila).Include(i => i.Eventos).Include(i => i.Eventos.Select(ii => ii.Classificacao))
+                    .FirstOrDefaultAsync(x => x.Id == evento.Ocorrencia.Id);
+            return evento.Ocorrencia;
+        }
+
+        public async Task<ClassificacaoWizard02> AtendimentoEventoClassificacaoAsync(EventoWizard02 evento, int? classificacaoId)
+        {
+            evento.Classificacao = await _context.ClassificacaoWizard02.FirstOrDefaultAsync(x => x.Id == classificacaoId);
+            return evento.Classificacao;
+        }
+
+        public async Task AtendimentoListaEventosAsync(List<EventoWizard02> listaEventos)
+        {
+            await _context.EventoWizard02.AddRangeAsync(listaEventos);
+        }
+
+        public async Task<ClassificacaoWizard02> AtendimentoPaiAsync(int? aux)
+        {
+            var pai = await _context.ClassificacaoWizard02.FirstOrDefaultAsync(x => x.Id == aux);
+            return pai;
         }
 
         public async Task<FilaWizard02> GetFilaAsync(int id)
@@ -394,7 +435,7 @@ namespace ISystem.Infrastructure.Repositories
                     var aux2 = await _context.ClassificacaoWizard02.FirstOrDefaultAsync(x => x.Id == item.ClassificacaoId);
                     var aux = aux2?.ClassificacaoPaiId;
                     var view = "";
-                    for (; ; )
+                    for ( ; ; )
                     {
                         if (aux == null)
                         {
@@ -452,7 +493,7 @@ namespace ISystem.Infrastructure.Repositories
             //        var aux2 = await _context.ClassificacaoWizard02.FirstOrDefaultAsync(x => x.Id == item.ClassificacaoId);
             //        var aux = aux2?.ClassificacaoPaiId;
             //        var view = "";
-            //        for (; ; )
+            //        for ( ; ; )
             //        {
             //            if (aux == null)
             //            {
@@ -645,7 +686,7 @@ namespace ISystem.Infrastructure.Repositories
                     var aux2 = await _context.ClassificacaoWizard02.FirstOrDefaultAsync(x => x.Id == item.ClassificacaoId);
                     var aux = aux2?.ClassificacaoPaiId;
                     var view = "";
-                    for (; ; )
+                    for ( ; ; )
                     {
                         if (aux == null)
                         {
@@ -870,11 +911,6 @@ namespace ISystem.Infrastructure.Repositories
         {
             _context.Entry(classificacao).State = EntityState.Modified;
             await _context.SaveChangesAsync();
-        }
-
-        public void Dispose(bool disposing)
-        {
-            throw new NotImplementedException();
-        }
+        }        
     }
 }
