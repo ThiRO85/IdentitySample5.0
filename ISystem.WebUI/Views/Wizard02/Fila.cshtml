@@ -1,0 +1,48 @@
+﻿@model IEnumerable<ISystem.Domain.Entities.Wizard02.FilaWizard02>
+@{
+    ViewBag.Title = "Wizard02";
+}
+
+<p>
+    @Html.ActionLink("Cadastrar", "FilaCreate", null, null, new { @class = "btn btn-secondary" })
+</p>
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Nome)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.GrupoWizard02.Nome)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.DtCriacao)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Ativo)
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Nome)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.GrupoWizard02.Nome)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DtCriacao)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Ativo)
+            </td>
+            <td>
+                @Html.ActionLink("Edita", "FilaEdit", new { id = item.Id })
+            </td>
+        </tr>
+    }
+
+</table>
+

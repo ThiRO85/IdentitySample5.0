@@ -32,6 +32,12 @@ namespace ISystem.Application.Services
             return eventos;
         }
 
+        public async Task<bool> CriarOc(int? id)
+        {
+            var ocorrencia = await _wizard02Repository.CriarOcAsync(id);
+            return ocorrencia;
+        }
+
         public async Task<OcorrenciaWizard02> CriarOcorrencia(int? id)
         {
             var ocorrencia = await _wizard02Repository.CriarOcorrenciaAsync(id);
@@ -275,6 +281,6 @@ namespace ISystem.Application.Services
         {
             var pai = await _wizard02Repository.AtendimentoPaiAsync(aux);
             return pai;
-        }
+        }        
     }
 }

@@ -1,0 +1,363 @@
+﻿@model IEnumerable<ISystem.Domain.Entities.Wizard02.ClienteWizard02>
+
+@{
+    ViewBag.Title = "Wizard02";
+}
+
+<link href="~/Content/font-awesome.min.css" rel="stylesheet" />
+<style>
+    table {
+        border-collapse: collapse;
+        border: 2px solid #ddd
+    }
+
+    tr:hover td {
+        background: #dddddd;
+    }
+
+    .table .thead-dark th {
+        color: #fff;
+        background-color: #343a40;
+        border-color: #32383e;
+    }
+
+    table {
+        border-collapse: collapse;
+        border-radius: 1em;
+        overflow: hidden;
+    }
+</style>
+
+<div>
+    @using (Html.BeginForm("Index", "Wizard02"))
+    {
+        @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+        @Html.AntiForgeryToken()
+
+        <div class="top-margin">
+            <div class="form-row">
+                <div class="col-3">
+                    @*@Html.Label("Nome", new { @class = "control-label" }) Atenção!!! *@
+                    @Html.Editor("nome", new { htmlAttributes = new { @class = "form-control" } })
+                </div>
+                <div class="col-2">
+                    @*@Html.Label("E-mail", new { @class = "control-label" })*@
+                    @Html.Editor("email", new { htmlAttributes = new { @class = "form-control" } })
+                </div>
+                <div class="col-1">
+                    @*@Html.Label("Cpf", new { @class = "control-label" })*@
+                    @Html.Editor("cpf", new { htmlAttributes = new { @class = "form-control", mask = "999.999.999-99" } })
+                </div>
+                <div class="col-1">
+                    @*@Html.Label("Telefone", new { @class = "control-label" })*@
+                    @Html.Editor("telefone1", new { htmlAttributes = new { @class = "form-control telefone" } })
+                </div>
+                <div class="col-5">
+                    <a href="#" class="btn btn-secondary" role="button" data-toggle="modal" data-target="#myModal">Novo Cliente</a>
+                    <input id="submit" value="Pesquisar" class="btn btn-primary" type="submit">
+                    <a class="btn  btn-lg btn-danger" href="Wizard02/Roleta" role="button">Proximo Atendimento</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (Model != null)
+{
+    <div>
+        <h4>Clientes:</h4>
+        <div class="table-responsive">
+            <table class="table">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>
+                            Cliente Id
+                        </th>
+                        <th>
+                            @Html.DisplayName("Nome")
+                        </th>
+                        <th>
+                            @Html.DisplayName("E-mail")
+                        </th>
+                        <th>
+                            @Html.DisplayName("Cpf")
+                        </th>
+                        <th>
+                            @Html.DisplayName("Telefone - 1")
+                        </th>
+                        <th>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="table1">
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td> @Html.DisplayFor(modelItem => item.Id)</td>
+                            <td> @Html.DisplayFor(modelItem => item.Nome)</td>
+                            <td> @Html.DisplayFor(modelItem => item.Email)</td>
+                            <td> @Html.DisplayFor(modelItem => item.Cpf)</td>
+                            <td> @Html.DisplayFor(modelItem => item.Telefone1)</td>
+                            <td> <input type="button" class="btn btn-secondary btn-selecinado" onclick="Show(this,@item.Id)" value="Selecionar" />    <a href="Wizard02/CriarOc/@item.Id"><input type="button" class="btn btn-secondary" value="Nova Ocorrencia" /> </a></td>
+                        </tr>
+                    }
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div>
+        <br />
+        <h4>Ocorrências do cliente selecionado:</h4>
+        <div class="table-responsive">
+            <table class="table">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>
+                            Ocorrência Id
+                        </th>
+                        <th>
+                            @Html.DisplayName("Nome")
+                        </th>
+                        <th>
+                            @Html.DisplayName("Fila")
+                        </th>
+                        <th>
+                            @Html.DisplayName("N1")
+                        </th>
+                        <th>
+                            @Html.DisplayName("N2")
+                        </th>
+                        <th>
+                            @Html.DisplayName("Classificação")
+                        </th>
+                        <th>
+                            @Html.DisplayName("Data do último Status")
+                        </th>
+                        <th>
+                            @Html.DisplayName("Data da Criação")
+                        </th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="table2"></tbody>
+            </table>
+        </div>
+    </div>
+}
+
+<div>
+    <br />
+    <h4>Ocorrências disponíveis para trabalhar</h4>
+    <div class="table-responsive">
+        <table class="table">
+            <thead class="thead-dark">
+                <tr>
+                    <th>
+                        Ocorrência Id
+                    </th>
+                    <th>
+                        @Html.DisplayName("Nome")
+                    </th>
+                    <th>
+                        @Html.DisplayName("Fila")
+                    </th>
+                    <th>
+                        @Html.DisplayName("N1")
+                    </th>
+                    <th>
+                        @Html.DisplayName("N2")
+                    </th>
+                    <th>
+                        @Html.DisplayName("Classificação")
+                    </th>
+                    <th>
+                        @Html.DisplayName("Data do último Status")
+                    </th>
+                    <th>
+                        @Html.DisplayName("Data da Criação")
+                    </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="table3"></tbody>
+        </table>
+    </div>
+</div>
+
+@using (Html.BeginForm("NovoCliente", "Wizard02"))
+{
+    @Html.AntiForgeryToken()
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title" id="myModalLabel">Novo Cliente </h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-4">
+                            @*@Html.Label("Nome", new { @class = "control-label" }) Atenção!!!! *@
+                            @Html.Editor("nome", new { htmlAttributes = new { @class = "form-control" } })
+                        </div>
+                        <div class="col-4">
+                            @*@Html.Label("E-mail", new { @class = "control-label" }) Atenção!!! *@
+                            @Html.Editor("email", new { htmlAttributes = new { @class = "form-control" } })
+                        </div>
+                        <div class="col-2">
+                            @*@Html.Label("Cpf", new { @class = "control-label" }) Atenção!!! *@
+                            @Html.Editor("cpf", new { htmlAttributes = new { @class = "form-control", mask = "999.999.999-99" } })
+                        </div>
+                        <div class="col-2">
+                            @*@Html.Label("Telefone", new { @class = "control-label" }) Atenção!!! *@
+                            @Html.Editor("telefone1", new { htmlAttributes = new { @class = "form-control telefone" } })
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <input type="submit" value="Salvar" class="btn btn-primary btn-lg" id="salvar" />
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Modal -->
+<div class="modal fade" id="Usuario_" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Adicionar Usuários </h4>
+            </div>
+            <div class="modal-body">
+                @*Html.Label("Usuários:", new { @class = "control-label" }) Atenção!!! *@
+                <span id="userId" name="userId" class="col-md-12">
+                </span>
+            </div>
+            <div class="modal-footer">
+                <input type="submit" value="Confirmar" class="btn btn-primary btn-lg" data-dismiss="modal" aria-label="Close" id="ConfirmUser" />
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="Status_" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Adicionar Status </h4>
+            </div>
+            <div class="modal-body">
+                <span id="statusId" name="statusId" class="col-md-12"></span>
+            </div>
+            <div class="modal-footer">
+                <input type="submit" value="Confirmar" class="btn btn-primary btn-lg" data-dismiss="modal" aria-label="Close" id="ConfirmStatus" />
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @*@Scripts.Render("~/bundles/jqueryval") Atenção!!!
+    @Scripts.Render("~/bundles/jquerymask")*@
+
+    <script type="text/javascript" charset="utf-8">
+
+        GetFilaOcorrencias();
+
+        function Show(input, id) {
+            $(".btn-selecinado").css("background-color", "#545b62");
+            $(".btn-selecinado").val("Selecionar");
+            $(input).css("background-color", "#5DADE2");
+            $(input).val("Selecionado")
+            $("#table2").empty();
+            GetClienteOcorrencias(id)
+        }
+
+        $(document).ready(function () {
+            $(".telefone").focusout(function () {
+                var element = $(this);
+                element.unmask();
+                var phone = element.val().replace(/\D/g, "");
+                if (phone.length > 10) {
+                    element.mask("(99) 99999-999?9");
+                } else {
+                    element.mask("(99) 9999-9999?9");
+                }
+            }).trigger("focusout");
+            //Fim Mascara Telefone
+        });
+
+        function dataNorm(dataOri) {
+            dataOri = dataOri.replace(/\/Date\((-?\d+)\)\//, '$1');
+            dataOri = new Date(parseInt(dataOri));
+            var data = dataOri;
+            var dia = data.getDate();
+            if (dia.toString().length == 1)
+                dia = "0" + dia;
+            var mes = data.getMonth() + 1;
+            if (mes.toString().length == 1)
+                mes = "0" + mes;
+            var ano = data.getFullYear();
+            dataOri = dia + '/' + mes + '/' + ano;
+            return dataOri;
+        }
+
+         function GetClienteOcorrencias(id) {
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("GetClienteOcorrencias")',
+                dataType: 'json',
+                data: { id },
+                success: function(listar) {
+                    console.log(listar)
+                    $.each(listar.query, function (i, result) {
+
+                        if (result.Finalizado == true) {
+                            $("#table2").append('<tr> <td>' + result.OcorrenciaId + '</td> <td>' + result.Cliente + '</td><td> ' + result.Fila + ' </td><td> ' + result.N1 + ' </td><td> ' + result.N2 + ' </td><td> ' + result.ClassificacaoView + ' </td><td> ' + dataNorm(result.DtMovimentacao) + ' </td><td> ' + dataNorm(result.DtCriacao) + ' </td><td>  <a href="#"> Finalizada </a> </td></tr>');
+                        } else {
+                            $("#table2").append('<tr> <td>' + result.OcorrenciaId + '</td> <td>' + result.Cliente + '</td><td> ' + result.Fila + ' </td><td> ' + result.N1 + ' </td><td> ' + result.N2 + ' </td><td> ' + result.ClassificacaoView + ' </td><td> ' + dataNorm(result.DtMovimentacao) + ' </td><td> ' + dataNorm(result.DtCriacao) + ' </td><td>'
+                               +' <a href = "Wizard02/Atendimento?ocorrenciaId=' + result.OcorrenciaId + '" class= "btn btn-secondary" style = "font-size: 8px" > <i class="fa fa-play"></i> </span > </a >'
+                                + '<a href = "Wizard02/ReseteOcorrencia/' + result.OcorrenciaId + '" class= "btn btn-danger" style = "font-size: 8px" > <i class="fa fa-play"></i> </span > </a >'
+                               + '</td ></tr >');
+                        }
+                    });
+                },
+                error: function(ex) {
+                    alert('Erro ao tentar carregar a Ocorrencia do cliente Id: ' + id);
+                    console.log(ex);
+                }
+            });
+        }
+
+        function GetFilaOcorrencias() {
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("GetFilaOcorrencias")',
+                dataType: 'json',
+                success: function(listar) {
+                    $.each(listar.query, function(i, result) {
+                        $("#table3").append('<tr> <td>' + result.OcorrenciaId + '</td> <td>' + result.Cliente + '</td><td> ' + result.Fila + ' </td><td> ' + result.N1 + ' </td><td> ' + result.N2 + ' </td><td> ' + result.ClassificacaoView + ' </td><td> ' + dataNorm(result.DtMovimentacao) + ' </td> <td>' + dataNorm(result.DtCriacao) + '  </td> <td>'
+                            + '<a href="Wizard02/Atendimento?ocorrenciaId=' + result.OcorrenciaId + '"class="btn btn-secondary" style="font-size: 8px">  <i class="fa fa-play"></i>  </a>'
+                            + '<a href="Wizard02/ReseteOcorrencia/' + result.OcorrenciaId + '"class="btn btn-danger" style="font-size: 8px">  <i class="fa fa-play"></i>  </a>'
+                            + '</td></tr>');
+                    });
+                },
+                error: function(ex) {
+                    alert('Erro ao tentar carregar a Ocorrencia da fila');
+                    console.log(ex);
+                }
+            });
+         }
+    </script>
+}

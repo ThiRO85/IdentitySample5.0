@@ -1,0 +1,746 @@
+﻿@model ISystem.Domain.Entities.Wizard02.EventoWizard02
+@{
+    var message = TempData["AlertMessage"];
+}
+
+@if (ViewBag.Message != null)
+{
+    <div class="alert alert-info" role="alert">@Html.Raw(ViewBag.Message)</div>
+}
+
+@{
+    ViewBag.MotivoInteresse = new List<SelectListItem>()
+{
+new SelectListItem { Text = @"SELECIONE", Value = "" },
+new SelectListItem { Text = @"PESSOAL", Value = "PESSOAL" },
+new SelectListItem { Text = @"PROFISSIONAL", Value = "PROFISSIONAL" },
+new SelectListItem { Text = @"CULTURAL", Value = "CULTURAL" }
+};
+
+    ViewBag.NivelIdioma = new List<SelectListItem>()
+{
+new SelectListItem {Text = @"SELECIONE", Value = ""},
+new SelectListItem {Text = @"BÁSICO", Value = "BÁSICO"},
+new SelectListItem {Text = @"INTERMEDIÁRIO", Value = "INTERMEDIÁRIO"},
+new SelectListItem {Text = @"AVANÇADO", Value = "AVANÇADO"}
+
+};
+}
+
+<link href="~/Content/font-awesome.min.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.2-rc.1/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.1/js/select2.full.min.js"></script>
+
+<style>
+
+    .select2-container {
+        width: 95% !important;
+    }
+
+        .select2-container .select2-selection--single {
+            height: 22px;
+        }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #444;
+        line-height: 22px;
+    }
+
+    .select2-results__option {
+        padding: 1px;
+    }
+
+    .table-dark {
+        border-collapse: collapse;
+        border: 2px solid #ddd
+    }
+
+    tr:hover td {
+        background: #dddddd;
+    }
+
+    .table-dark .thead-dark th {
+        color: #fff;
+        background-color: #343a40;
+        border-color: #32383e;
+    }
+
+    .table-dark {
+        border-collapse: collapse;
+        border-radius: 1em;
+        overflow: hidden;
+    }
+
+    .form-control {
+        font-size: 11px;
+        height: 22px;
+        padding: 2px;
+        width: 100%;
+    }
+
+    .input-lg {
+        min-width: 90% !important;
+    }
+
+    .form-group {
+        margin-bottom: unset;
+    }
+
+    #listaCursos > tbody > tr {
+        cursor: pointer;
+    }
+
+    label {
+        width: 100%;
+    }
+
+    .alinhar-glyphicon {
+        padding: 0 5px 0 5px;
+    }
+
+    button, input, select, textarea {
+        font-family: inherit;
+        font-size: 100%;
+        margin: 0;
+    }
+
+    label {
+        display: inline-block;
+        font-size: 12px;
+        font-weight: bold;
+        margin-bottom: 0;
+        margin-top: 3px;
+    }
+
+    .head-dark {
+        background: #343a40 !important;
+        border-collapse: collapse;
+        border-radius: 1em 1em 0px 0px;
+        overflow: hidden;
+    }
+
+    .fa-border {
+        margin-bottom: 10px;
+    }
+
+    h7 {
+        color: #fff;
+        line-height: 15px;
+        padding-left: 10px;
+        margin: 0;
+        font-size: 12px;
+        min-height: 40px;
+        position: relative;
+        text-shadow: 0 -1px 0 rgba(0,0,0,.3);
+        text-transform: uppercase;
+        text-align: left;
+    }
+
+    dl {
+        margin: 5px;
+    }
+
+    dt {
+        margin: 5px;
+    }
+</style>
+
+<div>
+    <h5 class="m-1">
+        <button class="btn btn-secondary" data-toggle="collapse" data-target="#collapse2" aria-expanded="false" aria-controls="collapse2">
+            Histórico de Eventos
+        </button>
+    </h5>
+</div>
+
+<div>
+    <div id="collapse2" class="collapse multi-collapse">
+        <div>
+            <table class="table table-striped" style="font-size:10px;">
+                <thead>
+                    <tr>
+                        <td>
+                            #
+                        </td>
+                        <td>
+                            @Html.DisplayNameFor(model => model.Nome)
+                        </td>
+                        <td>
+                            @Html.DisplayNameFor(model => model.Cpf)
+                        </td>
+                        <td>
+                            @Html.DisplayNameFor(model => model.FilaId)
+                        </td>
+                        <td>
+                            @Html.DisplayNameFor(model => model.ClassificacaoView)
+                        </td>
+                        <td>
+                            @Html.DisplayNameFor(model => model.Comentario)
+                        </td>
+                        <td>
+                            @Html.DisplayNameFor(model => model.DtEvento)
+                        </td>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Ocorrencia.Eventos.OrderBy(s => s.DtEvento))
+                    {
+                        <tr>
+                            <td>
+                                @item.Id
+                            </td>
+                            <td>
+                                @item.Nome
+                            </td>
+                            <td>
+                                @item.Cpf
+                            </td>
+                            <td>
+                                @item.Fila.Nome
+                            </td>
+                            <td>
+                                @item.ClassificacaoView
+                            </td>
+                            <td>
+                                @item.Comentario
+                            </td>
+                            <td>
+                                @item.DtEvento
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="row">
+        <div class="col">
+            @if (message != null)
+            {
+                <div class="alert alert-danger" role="alert">@message</div>
+            }
+
+            @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+            @Html.HiddenFor(model => model.ClienteWizard02.Id, new { @name = "clienteId", @id = "clienteId" })
+            @Html.HiddenFor(model => model.Ocorrencia.Id)
+            @Html.HiddenFor(model => model.CodUnidade)
+            @Html.HiddenFor(model => model.CampanhaHub)
+            @Html.HiddenFor(model => model.Aux1)
+            @Html.HiddenFor(model => model.Aux2)
+            @Html.HiddenFor(model => model.Aux3)
+            @Html.HiddenFor(model => model.Aux4)
+            @Html.HiddenFor(model => model.Aux5)
+            @Html.HiddenFor(model => model.Aux6)
+            @Html.HiddenFor(model => model.Aux7)
+            @Html.HiddenFor(model => model.Aux8)
+            @Html.HiddenFor(model => model.Aux9)
+            @Html.HiddenFor(model => model.Aux10)
+            @Html.HiddenFor(model => model.TelefoneDiscador)
+            @Html.HiddenFor(model => model.LigacaoId)
+            @Html.HiddenFor(model => model.DtAberturaEvento)
+            @Html.HiddenFor(model => model.Ocorrencia.Fila.GrupoWizard02.Id, new { @name = "grupoId", @id = "grupoId" })
+
+            <div class="head head-dark">
+
+                <h7> Dados do Lead</h7>
+            </div>
+
+            <div class="fa-border">
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-md-1">
+                            @Html.LabelFor(model => model.CodCliente, new { @class = "control-label" })
+                            @Html.EditorFor(model => model.CodCliente, new { htmlAttributes = new { @class = "form-control" } })
+                            @Html.ValidationMessageFor(model => model.CodCliente, "", new { @class = "text-danger" })
+                        </div>
+                        <div class="col-md-2">
+                            @Html.LabelFor(model => model.Nome, new { @class = "control-label" })
+                            @Html.EditorFor(model => model.Nome, new { htmlAttributes = new { @class = "form-control" } })
+                            @Html.ValidationMessageFor(model => model.Nome, "", new { @class = "text-danger" })
+                        </div>
+                        <div class="col-md-2">
+                            @Html.LabelFor(model => model.Email, new { @class = "control-label" })
+                            @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "form-control", @type = "text" } })
+                            @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+                        </div>
+                        <div class="col-md-2">
+                            @Html.LabelFor(model => model.Cpf, new { @class = "control-label" })
+                            @Html.EditorFor(model => model.Cpf, new { htmlAttributes = new { @class = "form-control", @mask = "999.999.999-99" } })
+                            @Html.ValidationMessageFor(model => model.Cpf, "", new { @class = "text-danger" })
+                        </div>
+                        <div class="col-md-1">
+                            @Html.LabelFor(model => model.Rg, new { @class = "control-label" })
+                            @Html.EditorFor(model => model.Rg, new { htmlAttributes = new { @class = "form-control", @mask = "99.999.999-9" } })
+                            @Html.ValidationMessageFor(model => model.Rg, "", new { @class = "text-danger" })
+                        </div>
+                        <div class="col-md-2">
+                            @Html.LabelFor(model => model.DtNascimento, new { @class = "control-label" })
+                            @Html.EditorFor(model => model.DtNascimento, new { htmlAttributes = new { @type = "date", @class = "form-control", data_val = false } })
+                            @Html.ValidationMessageFor(model => model.DtNascimento, "", new { @class = "text-danger" })
+                        </div>
+                        <div class="col-md-2">
+                            @*Html.Label("Campanha", new { @class = "control-label" }) Atenção!!! *@
+                            @Html.EditorFor(model => model.Ocorrencia.Campanha.Nome, new { htmlAttributes = new { @class = "form-control", disabled = true } })
+                            @Html.ValidationMessageFor(model => model.Ocorrencia.Campanha.Nome, "", new { @class = "text-danger" })
+                        </div>
+
+                        @*<div class="col-md-2">
+                                @Html.Label("Indicado Por", new { @class = "control-label" })
+                                @Html.EditorFor(model => model.ClienteWizard02.IndicadoPor.Nome, new { htmlAttributes = new { @class = "form-control", disabled = true } })
+                                @Html.ValidationMessageFor(model => model.ClienteWizard02.IndicadoPor.Nome, "", new { @class = "text-danger" })
+                            </div>*@
+
+                        @*<div class="col-md-2">
+                                <input type="button" value="Criar Indicação" data-toggle="modal" data-target="#indicacaoModal" class="btn btn-success" style="margin-top: 10px;" />
+                            </div>*@
+                    </div>
+                </div>
+            </div>
+
+            <div class="head head-dark">
+
+                <h7> Localização</h7>
+            </div>
+            <div class="fa-border">
+
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-md-3">
+                            @Html.LabelFor(model => model.Telefone1, new { @class = "control-label " })
+                            <div class="input-group">
+                                @Html.EditorFor(model => model.Telefone1, new { htmlAttributes = new { @class = "form-control telefone" } })
+
+                                @Html.ValidationMessageFor(model => model.Telefone1, "", new { @class = "text-danger" })
+
+                                <span class="input-group-btn ">
+                                    <button type="button" class="btn btn-success alinhar-glyphicon tabular" value="Telefone1">
+                                        <i class="fa fa-phone"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-success alinhar-glyphicon whatsapp" value="Telefone1">
+                                        <i class="fa fa-whatsapp"></i>
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            @Html.LabelFor(model => model.Telefone2, new { @class = "control-label " })
+                            <div class="input-group">
+                                @Html.EditorFor(model => model.Telefone2, new { htmlAttributes = new { @class = "form-control telefone" } })
+
+                                @Html.ValidationMessageFor(model => model.Telefone2, "", new { @class = "text-danger" })
+
+                                <span class="input-group-btn ">
+                                    <button type="button" class="btn btn-success alinhar-glyphicon tabular" value="Telefone2">
+                                        <i class="fa fa-phone"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-success alinhar-glyphicon whatsapp" value="Telefone2">
+                                        <i class="fa fa-whatsapp"></i>
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            @Html.LabelFor(model => model.Telefone3, new { @class = "control-label " })
+                            <div class="input-group">
+                                @Html.EditorFor(model => model.Telefone3, new { htmlAttributes = new { @class = "form-control telefone" } })
+
+                                @Html.ValidationMessageFor(model => model.Telefone3, "", new { @class = "text-danger" })
+
+                                <span class="input-group-btn ">
+                                    <button type="button" class="btn btn-success alinhar-glyphicon tabular" value="Telefone3">
+                                        <i class="fa fa-phone"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-success alinhar-glyphicon whatsapp" value="Telefone3">
+                                        <i class="fa fa-whatsapp"></i>
+
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            @Html.LabelFor(model => model.Telefone4, new { @class = "control-label " })
+                            <div class="input-group">
+                                @Html.EditorFor(model => model.Telefone4, new { htmlAttributes = new { @class = "form-control celular" } })
+
+                                @Html.ValidationMessageFor(model => model.Telefone4, "", new { @class = "text-danger" })
+
+                                <span class="input-group-btn ">
+                                    <button type="button" class="btn btn-success alinhar-glyphicon tabular " value="Telefone4">
+                                        <i class="fa fa-phone"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-success alinhar-glyphicon whatsapp" value="Telefone4">
+                                        <i class="fa fa-whatsapp"></i>
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-2">
+                        @Html.LabelFor(model => model.Cep, new { @class = "control-label" })
+                        @Html.EditorFor(model => model.Cep, new { htmlAttributes = new { @class = "form-control", mask = "99999-999" } })
+                        @Html.ValidationMessageFor(model => model.Cep, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-md-1">
+                        <input type="button" value="Buscar Cep" id="BuscaCep" class="btn btn-sm btn-success" style="margin-top: 10px;" />
+                    </div>
+                    <div class="col-md-3">
+                        @Html.LabelFor(model => model.Logradouro, new { @class = "control-label" })
+                        @Html.EditorFor(model => model.Logradouro, new { htmlAttributes = new { @class = "form-control" } })
+                        @Html.ValidationMessageFor(model => model.Logradouro, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-md-1">
+                        @Html.LabelFor(model => model.Numero, new { @class = "control-label" })
+                        @Html.EditorFor(model => model.Numero, new { htmlAttributes = new { @class = "form-control" } })
+                        @Html.ValidationMessageFor(model => model.Numero, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-md-2">
+                        @Html.LabelFor(model => model.Bairro, new { @class = "control-label" })
+                        @Html.EditorFor(model => model.Bairro, new { htmlAttributes = new { @class = "form-control" } })
+                        @Html.ValidationMessageFor(model => model.Bairro, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-md-3">
+                        @Html.LabelFor(model => model.Complemento, new { @class = "control-label" })
+                        @Html.EditorFor(model => model.Complemento, new { htmlAttributes = new { @class = "form-control" } })
+                        @Html.ValidationMessageFor(model => model.Complemento, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-3">
+                        @Html.LabelFor(model => model.Cidade, new { @class = "control-label" })
+                        @Html.EditorFor(model => model.Cidade, new { htmlAttributes = new { @class = "form-control" } })
+                        @Html.ValidationMessageFor(model => model.Cidade, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-md-1">
+                        @Html.LabelFor(model => model.Estado, new { @class = "control-label" })
+                        @Html.EditorFor(model => model.Estado, new { htmlAttributes = new { @class = "form-control" } })
+                        @Html.ValidationMessageFor(model => model.Estado, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+            <div class="head head-dark">
+
+                <h7> Fechamento</h7>
+            </div>
+            <div class="fa-border">
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-md-2">
+                            @Html.LabelFor(model => model.DtPromessa, new { @class = "control-label" })
+                            @Html.EditorFor(model => model.DtPromessa, new { htmlAttributes = new { @class = "form-control", @type = "date", data_val = false } })
+                            @Html.ValidationMessageFor(model => model.DtPromessa, "", new { @class = "text-danger" })
+                        </div>
+                        <div class="col-md-2">
+                            @Html.LabelFor(model => model.DtAgendamentoVisita, new { @class = "control-label" })
+                            @Html.EditorFor(model => model.DtAgendamentoVisita, new { htmlAttributes = new { @class = "form-control", @type = "datetime-local", data_val = false } })
+                            @Html.ValidationMessageFor(model => model.DtAgendamentoVisita, "", new { @class = "text-danger" })
+                        </div>
+                        <div class="col-md-2">
+                            @Html.LabelFor(model => model.Unidade, new { @class = "control-label" })
+                            @Html.EditorFor(model => model.Unidade, new { htmlAttributes = new { @class = "form-control" } })
+                            @Html.ValidationMessageFor(model => model.Unidade, "", new { @class = "text-danger" })
+                        </div>
+                        <div class="col-md-2">
+                            @Html.LabelFor(model => model.HorarioCurso, new { @class = "control-label" })
+                            @Html.EditorFor(model => model.HorarioCurso, new { htmlAttributes = new { @class = "form-control", @type = "Time" } })
+                            @Html.ValidationMessageFor(model => model.HorarioCurso, "", new { @class = "text-danger" })
+                        </div>
+                        <div class="col-md-2">
+                            @Html.LabelFor(model => model.DiaSemana, new { @class = "control-label" })
+                            @Html.EditorFor(model => model.DiaSemana, new { htmlAttributes = new { @class = "form-control", @type = "Week" } })
+                            @Html.ValidationMessageFor(model => model.DiaSemana, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-md-2">
+                            @Html.LabelFor(model => model.MotivoInteresse, new { @class = "control-label" })
+                            @Html.DropDownListFor(model => model.MotivoInteresse, (List<SelectListItem>)ViewBag.InteresseIdioma, new { @class = "form-control" })
+                            @Html.ValidationMessageFor(model => model.MotivoInteresse, "", new { @class = "text-danger" })
+                        </div>
+                        <div class="col-md-2">
+                            @Html.LabelFor(model => model.Idioma, new { @class = "control-label" })
+                            @Html.EditorFor(model => model.Idioma, new { htmlAttributes = new { @class = "form-control" } })
+                            @Html.ValidationMessageFor(model => model.Idioma, "", new { @class = "text-danger" })
+                        </div>
+                        <div class="col-md-2">
+                            @Html.LabelFor(model => model.NivelIdioma, new { @class = "control-label" })
+                            @Html.DropDownListFor(model => model.NivelIdioma, (List<SelectListItem>)ViewBag.NivelIdioma, new { @class = "form-control" })
+                            @Html.ValidationMessageFor(model => model.NivelIdioma, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="head head-dark">
+
+                <h7> Complemento</h7>
+            </div>
+            <div class="fa-border">
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-md-10">
+                            @*@Html.Label("Comentário", new { @class = "control-label" }) Atenção!!! *@
+                            @Html.TextAreaFor(model => model.Comentario, new { @class = "form-control", @rows = "3" })
+                            @Html.ValidationMessageFor(model => model.Comentario, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+
+                    <div class="col">
+                        @Html.Label("Indice de Processos")
+                        @Html.EditorFor(model => model.TelefoneTrabalhado, new { htmlAttributes = new { @class = "form-control TelefoneTrabalhado", @Id = "TelefoneTrabalhadoExibicao", disabled = true } })
+                        @Html.HiddenFor(model => model.TelefoneTrabalhado, new { @class = "TelefoneTrabalhado" })
+                    </div>
+                    <div class="col">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-body" style="min-height: 300px;">
+
+
+                    @*------------------------------------------------------------------------------------------------------------------------*@
+
+                    <div class="form-row">
+                        <div class="col-12">
+                            @*@Html.Label("Classificação", new { @class = "control-label" }) Atenção!!! *@
+                            <select name="classificacaoId" id="classificacaoId" class="form-control " style="width:100%"></select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-6 form-agendamento">
+                            @*@Html.Label("Defina uma Data", new { @class = "control-label" }) Atenção!!! *@
+                            @Html.EditorFor(model => model.DtAgendado, new { htmlAttributes = new { @type = "datetime-local", @class = "form-control ", @id = "Agendamento", data_val = false } })
+                        </div>
+                    </div>
+
+                    @*------------------------------------------------------------------------------------------------------------------------*@
+                </div>
+
+                <div class="modal-footer">
+                    @Html.Hidden("finalizado")
+                    <input type="submit" value="Salvar e Continuar" class="btn btn-success btn-lg confirmado" id="confirmado" />
+                    <input type="submit" value="Salvar e Encerrar" class="btn btn-danger btn-lg confirmado" id="Finalizar" />
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<br />
+<br />
+
+@section Scripts {
+
+    @*@Scripts.Render("~/bundles/jqueryval")  Atenção!!!
+        @Scripts.Render("~/bundles/jquerymask")
+        @Scripts.Render("~/bundles/inputUpDown")*@
+    <script src="~/Scripts/Customizado/DiscadorNovax.js"></script>
+
+    <script type="text/javascript" charset="utf-8">
+
+        var classificacaoId = $("#classificacaoId").val();
+        var grupo = $("#grupoId").val();
+        Agendamento(false);
+        formulario2(classificacaoId);
+        $("#finalizado").val(false);
+
+        function formulario2(tipo) {
+            if (tipo == 33 || tipo == 57 || tipo == 88) {
+                $(".formulario2").show();
+                $('.formulario2 :input').attr("disabled", false);
+
+            }
+            else {
+                $(".formulario2").hide();
+                $('.formulario2 :input').attr("disabled", true);
+            }
+        }
+
+        function Agendamento(verdadeiro) {
+            if (verdadeiro) {
+                $(".form-agendamento").show();
+                $("#Agendamento").attr("disabled", false);
+
+            } else {
+                $(".form-agendamento").hide();
+                $("#Agendamento").attr("disabled", true);
+            }
+        }
+
+        $(document).ready(function () {
+
+            $("#classificacaoId").hide();
+
+            function formatResult(node) {
+                var $result = $('<span style="padding-left:' + (20 * node.level) + 'px;">' + node.text + '</span>');
+                return $result;
+            };
+
+            function SelectList(data) {
+                $("#classificacaoId").select2({
+                    width: 'element',
+                    placeholder: 'Selecione uma Opção',
+                    data: data,
+                    formatSelection: function (item) {
+                        return item.text
+                    },
+                    formatResult: function (item) {
+                        return item.text
+                    },
+                    templateResult: formatResult
+                }).show();
+            }
+
+            function GetClassificacao(grupo) {
+                 $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("GetClassificacao")',
+                    dataType: "json",
+                    data: {grupo: grupo },
+                    error: function() {
+                        alert("Ocorreu uma falha");
+                    },
+                    success: function (data) {
+                        SelectList(data.retorno)
+                    }
+                });
+            }
+            GetClassificacao(grupo)
+
+            $("#classificacaoId").change(function () {
+                var classificacaoId = $("#classificacaoId").val();
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("GetRegra")',
+                    dataType: "json",
+                    data: { classificacao: classificacaoId },
+                    error: function () {
+                        Agendamento(false);
+                        formulario2(0);
+                        alert("Ocorreu uma falha ao buscar a regra");
+                    },
+
+                    success: function (data) {
+                        console.log(data);
+                        Agendamento(data.retorno.Agendamento);
+                        formulario2(classificacaoId);
+                    }
+                });
+
+            });
+        });
+
+        $(document).ready(function () {
+
+            $(".telefone").focusout(function() {
+                var element = $(this);
+                element.unmask();
+                var phone = element.val().replace(/\D/g, "");
+                if (phone.length > 10) {
+                    element.mask("(99) 99999-999?9");
+                } else {
+                    element.mask("(99) 9999-9999?9");
+                }
+            }).trigger("focusout");
+            //Fim Mascara Telefone
+
+            $(".celular").focusout(function () {
+                var element = $(this);
+                element.unmask();
+                var phone = element.val().replace(/\D/g, "");
+                    element.mask("(99) 99999-9999");
+            }).trigger("focusout");
+
+            $(".confirmado").click(function () {
+                var id = $(this).attr("id");
+                if (id == "Finalizar") {
+                    $("#finalizado").val(true);
+                }
+                $("form").submit();
+                $(".confirmado").val("loading");
+                $(".confirmado").attr("disabled", true);
+            });
+
+            $(".tabular").click(function() {
+                $(".TelefoneTrabalhado").empty();
+                var telefoneValor = $(this).attr("value");
+                telefoneValor = document.getElementById(telefoneValor);
+                $(".TelefoneTrabalhado").val(telefoneValor.value);
+            });
+
+            $(".whatsapp").click(function () {
+                var valor = $(this).attr("value");
+                element = document.getElementById(valor);
+                var phone = element.value.replace(/\D/g, "");
+                if (phone.length > 9) {
+                    window.open("https://web.whatsapp.com/send?1=pt_br&phone=55"+phone, "WhatsApp", "width=800, height=600");
+                } else {
+                    alert("Número inválido")
+                }
+            });
+        });
+
+        function GetCep(cep) {
+
+            $.ajax({
+                // url: 'http://correiosapi.apphb.com/cep/' + cep,
+                url: 'https://viacep.com.br/ws/' + cep + '/json/',
+                dataType: 'jsonp',
+                crossDomain: true,
+                contentType: "application/json",
+                statusCode: {
+                    200: function (data) {
+                        $("#Logradouro").val(data.logradouro);
+                        $("#Cidade").val(data.localidade);
+                        $("#Estado").val(data.uf);
+                        $("#Bairro").val(data.bairro);
+                        console.log(data)
+                    } // Ok
+                    ,
+                    400: function (msg) { alert(msg); } // Bad Request
+                    ,
+                    404: function (msg) { alert("CEP não encontrado!!"); } // Not Found
+                }
+            })
+        }
+
+        $("#BuscaCep").click(function () {
+            var valor = document.getElementById('Cep').value;
+
+            if (valor == "") {
+                alert("Preencha o Campo 'Dados de Entrega CEP'")
+            } else {
+                valor = valor.replace("-", "");
+                GetCep(valor);
+            }
+        });
+
+        setTimeout(function () {
+            window.location.href = "../Wizard02"; //will redirect to your blog page (an ex: blog.html)
+        },
+            (60000 * 60)
+        ); //will call the function after 2 secs.
+    </script>
+}
+

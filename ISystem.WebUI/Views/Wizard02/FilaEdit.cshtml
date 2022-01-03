@@ -1,0 +1,50 @@
+﻿@model ISystem.Domain.Entities.Wizard02.FilaWizard02
+
+@{
+    ViewBag.Title = "FilaEdit";
+}
+
+<div class="margin-top-basic">
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.Id)
+        @Html.HiddenFor(model => model.DtCriacao)
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            <div class="row">
+                <div class="col-md-5">
+                    @Html.LabelFor(model => model.Nome, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.Nome, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.Nome, "", new { @class = "text-danger" })
+                </div>
+                <div class="col-md-4">
+                    @Html.LabelFor(model => model.GrupoWizard02Id, "GrupoWizard02Id", htmlAttributes: new { @class = "control-label" })
+                    @Html.DropDownList("GrupoWizard02Id", null, htmlAttributes: new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.GrupoWizard02Id, "", new { @class = "text-danger" })
+                </div>
+                <div class="col-md-2">
+                    @Html.LabelFor(model => model.Ativo, htmlAttributes: new { @class = "control-label" })
+                    <div class="checkbox">
+                        @Html.EditorFor(model => model.Ativo)
+                        @Html.ValidationMessageFor(model => model.Ativo, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Editar" class="btn btn-success" />
+            </div>
+        </div>
+    }
+
+    <div>
+        @Html.ActionLink("Voltar", "Fila")
+    </div>
+</div>
+
+@section Scripts {
+    @*@Scripts.Render("~/bundles/jqueryval") Atenção!!! *@
+}

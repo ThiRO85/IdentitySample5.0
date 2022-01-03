@@ -1,0 +1,245 @@
+﻿<div class="m-2 row">
+    <div class="col-6">
+        <button type="button" class="btn btn-secondary " data-toggle="modal" data-target="#Usuario_" id="adusuario"> Ad Usuario </button>
+    </div>
+</div>
+<div class="row">
+    <div class="col-3">
+        @*@Html.Label("Filas:", new { @class = "control-label" }) Atenção!!! *@
+        @Html.DropDownList("Filas", ViewBag.Filas as SelectList, "-- Selecione uma Fila --", new { @class = "form-control fila" })
+    </div>
+</div>
+<div>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayName("Id:")
+        </dt>
+        <dd id="Id">
+        </dd>
+        <dt>
+            @Html.DisplayName("Nome:")
+        </dt>
+        <dd id="Nome">
+        </dd>
+        <dt>
+            @Html.DisplayName("Dt Criação:")
+        </dt>
+        <dd id="DtCriacao">
+        </dd>
+        </dd>
+        <dt>
+            @Html.DisplayName("Qtd Usuarios:")
+        </dt>
+        <dd id="QtdUsuario">
+        </dd>
+        <dt>
+            @Html.DisplayName("Ativo:")
+        </dt>
+        <dd id="Status">
+        </dd>
+    </dl>
+</div>
+<hr />
+
+<div class="hidden">
+    <div class="datagrid">
+        <table>
+            <thead>
+                <tr>
+                    <th>
+                        #
+                    </th>
+                    <th>
+                        @Html.DisplayName("Nome")
+                    </th>
+                    <th>
+                        @Html.DisplayName("Login")
+                    </th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="tabela1"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="Usuario_" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="col-10">     <h4 class="modal-title" id="myModalLabel">Adicionar Usuários </h4></div>
+                <div class="col-2"><button type="button" class="close" data-dismiss="modal" aria-label="Close">   <span aria-hidden="true">&times;</span></button></div>
+
+            </div>
+            <div class="modal-body">
+                @Html.Hidden("remover", false)
+                @*@Html.Label("Usuarios:", new { @class = "control-label" }) Atenção!!! *@
+                <span id="userid" name="userid" class="form-row">
+                </span>
+            </div>
+            <div class="modal-footer">
+                <input type="submit" value="Confirmar" class="btn btn-primary btn-lg" data-dismiss="modal" aria-label="Close" id="confirmadoUsu" />
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @*@Scripts.Render("~/bundles/jqueryval") Atenção!!!
+    @Scripts.Render("~/bundles/jquerymask")
+    @Scripts.Render("~/bundles/inputUpDown")
+    @Styles.Render("~/Content/datetimepicker")
+    @Scripts.Render("~/bundles/datetimepicker")*@
+
+    <script type="text/javascript" charset="utf-8">
+
+        function dataNorm(dataOri) {
+            dataOri = dataOri.replace(/\/Date\((-?\d+)\)\//, '$1');
+            dataOri = new Date(parseInt(dataOri));
+            var data = dataOri;
+            var dia = data.getDate();
+            if (dia.toString().length == 1)
+                dia = "0" + dia;
+            var mes = data.getMonth() + 1;
+            if (mes.toString().length == 1)
+                mes = "0" + mes;
+            var ano = data.getFullYear();
+            dataOri = dia + '/' + mes + '/' + ano;
+            return dataOri;
+        }
+
+        function setUsuario(userIdList, id, removerUsu) {
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("FilaEditUsuario")',
+                dataType: 'json',
+                data: { userIdList: userIdList, id: id, removerUsu: removerUsu },
+                success: function(lista) {
+                    alert(lista);
+
+                    getDados(id);
+                },
+                error: function(ex) {
+                    console.log(userIdList);
+                    alert('Erro ao tentar carregar a Fila: ' + $("#Id").val());
+                }
+            });
+        }
+
+        function DeletUsu(userid) {
+            var id = $("#Filas").val();
+            var removerUsu = true;
+            if (userid == null || userid == "") {
+                alert("Selecione um Usuario");
+                return false;
+            }
+            var userIdList = [];
+            userIdList.push(userid);
+            var data = JSON.stringify(userIdList);
+            setUsuario(data, id, removerUsu);
+        };
+
+        function getDados(valor) {
+            $(".tabelaInfo").empty();
+            $("#tabela1").empty();
+            $("#Id").empty();
+            $("#Nome").empty();
+            $("#DtCriacao").empty();
+            $("#QtdUsuario").empty();
+            $("#Status").empty();
+            $(".show").attr("class", "hidden");
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("GetFila")',
+                dataType: 'json',
+                data: { id: valor },
+                success: function(listar) {
+                    $.each(listar.fila, function(i, result) {
+                        if (result.DtCriacao != null && result.DtModicacao != null) {
+                            result.DtCriacao = dataNorm(result.DtCriacao);
+                            result.DtModicacao = dataNorm(result.DtModicacao);
+                        }
+                        $("#filaid").append(result.id);
+
+                        $("#Id").append(result.Id);
+                        $("#Nome").append(result.Nome);
+                        $("#DtCriacao").append( dataNorm(result.DtCriacao));
+
+                        $("#QtdUsuario").append(result.QtdUsuario);
+                        $("#Status").append(result.Status);
+                    });
+                    $.each(listar.usuario, function(i, result) {
+                        $("#tabela1").append("<tr class=\"tabelaInfo\"><td>" + i + '</td> <td>' + result.Nome + '</td> <td>' + result.UserName + '</td><td>  <button class="btn btn-default" onclick="DeletUsu(\'' + result.Id + '\')">Remover</button></td></tr>');
+                    });
+                    $(".hidden").attr("class", "show");
+                },
+                error: function(ex) {
+                    alert('Erro ao tentar carregar a Fila: ' + $("#Filas").val());
+                }
+            });
+        }
+
+        $("#confirmadoUsu").click(function() {
+            var id = $("#Filas").val();
+            var userid = $("#userid").val();
+            var removerUsu = false;
+            //  if (userid == null || userid == "") {
+            //      alert("Selecione um Usuario");
+            //      return false;
+            // }
+            var userIdList = [];
+            $(this).parents('#Usuario_').find('input:checked').each(function() {
+                var domain = $(this).val();
+                userIdList.push(domain);
+            });
+            var data = JSON.stringify(userIdList);
+            setUsuario(data, id, removerUsu);
+        });
+
+        $(document).ready(function() {
+            function getUsuario(valor) {
+                $("#userid").empty();
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("GetFilaUsuario")',
+                    dataType: 'json',
+                    data: { filaid: valor },
+                    success: function(lista) {
+                        //console.log(lista.lista[0].usuarios);
+                        $.each(lista.lista[0].usuarios, function(i, result) {
+                            // $("#userid").append("<option value=\"" + result.Id + "\">" + result.UserName + "</option>");
+                            if ((i % 3) == 0) {
+                                $("#userid").append("</br >");
+                            }
+                            $("#userid").append("<div class=\"col-md-4 \"><input type=\"checkbox\" id=\"checkbox\" name=\"SelectedRole\" value=\"" + result.Id + " \" class=\"checkbox-inline\" /> <label class = \"control-label\" >" + result.UserName + " </label></div>");
+                        });
+                    },
+                    error: function(ex) {
+                        alert('Erro ao tentar carregar a Fila: ' + $("#Id").val());
+                    }
+                });
+            }
+
+            $("#adusuario").click(function() {
+                var valor = $("#Filas").val();
+                if (valor == null || valor == "") {
+                    alert("Selecione uma Fila");
+                    return false;
+                }
+                getUsuario(valor);
+            });
+
+            $("#Filas").change(function() {
+                var valor = $("#Filas").val();
+                if (valor == null || valor == "") {
+                    return false;
+                }
+                getDados(valor);
+                return false;
+            });
+        });
+    </script>
+}

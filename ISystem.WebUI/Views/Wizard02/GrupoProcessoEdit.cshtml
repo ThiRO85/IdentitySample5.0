@@ -1,0 +1,64 @@
+﻿@model ISystem.Domain.Entities.Wizard02.GrupoProcessoWizard02
+
+@{
+    ViewBag.Title = "Editar";
+}
+
+<div class="well well-small white">
+
+    @using (Html.BeginForm())
+    {
+        var i = 0;
+        @Html.AntiForgeryToken()
+
+        <div class="form-horizontal">
+            <br />
+            <h4>Editar Grupo Processo.</h4>
+            <hr />
+            @Html.ValidationSummary(true)
+            @Html.HiddenFor(model => model.Id)
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Nome, new { @class = "control-label col-md-2" })
+                <div class="col-md-12">
+                    @Html.TextBoxFor(m => m.Nome, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.Nome)
+                </div>
+            </div>
+            <div class="form-group">
+                @*@Html.Label("Tabulações", new { @class = "control-label col-md-2" }) Atenção!!! *@
+                <div class="row col-12">
+
+                    @*@foreach (var item in Model.ClassificacaoList) Atenção!!!
+                    {
+                        if ((i % 1) == 0)
+                        {
+                            <br />
+                        }
+                        <div class="col-md-12">
+                            <input type="checkbox" name="selectedClassificacao" value="@item.Value" checked="@item.Selected" class="checkbox-inline" />
+                            @Html.Label(item.Text, new { @class = "control-label" })
+                        </div>
+                        i++;
+                    }*@
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-offset-2 col-md-12">
+                    <input type="submit" value="Salvar" class="btn btn-success" />
+                </div>
+            </div>
+        </div>
+    }
+
+    <div>
+        @Html.ActionLink("Voltar", "GrupoProcesso")
+    </div>
+</div>
+<br />
+<br />
+<br />
+
+@section Scripts {
+    @*@Scripts.Render("~/bundles/jqueryval") Atenção!!! *@
+}

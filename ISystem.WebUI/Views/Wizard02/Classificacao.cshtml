@@ -1,0 +1,132 @@
+﻿@model IEnumerable<ISystem.Domain.Entities.Wizard02.ClassificacaoWizard02>
+
+<p class="m-1">
+    @Html.ActionLink("Cadastrar", "ClassificacaoCreate", null, null, new { @class = "btn btn-secondary" })
+</p>
+<table class="table table-sm">
+    <tr>
+        <th>
+            @Html.DisplayName("Classificacao")
+        </th>
+        <th>
+            @Html.DisplayName("Fila")
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Finalizador)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Ativo)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Agendamento)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.AgendamentoProprio)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.RetornoEmMin)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CPC)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Recusa)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Sucesso)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Target)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.NLocalizado)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Tentativa)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ZeraTentativa)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.EnviaEmail)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.StatusLeadApiId)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.MotivosPerdaApiId)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Status)
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.ClassificacaoView)
+            </td>
+            <td>
+                @if (item.Fila != null)
+                {
+                    @Html.DisplayFor(modelItem => item.Fila.Nome)
+                }
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Finalizador)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Ativo)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Agendamento)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AgendamentoProprio)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.RetornoEmMin)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CPC)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Recusa)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Sucesso)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Target)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.NLocalizado)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Tentativa)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ZeraTentativa)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EnviaEmail)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.StatusLeadApiId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.MotivosPerdaApiId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Status.Nome)
+            </td>
+            <td>
+                @Html.ActionLink("Editar", "ClassificacaoEdit", new { id = item.Id })
+        </tr>
+    }
+</table>
+
+<br />
+<br />

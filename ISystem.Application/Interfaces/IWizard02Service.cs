@@ -9,6 +9,7 @@ namespace ISystem.Application.Interfaces
         Task<List<ClienteWizard02>> Index(string nome, string telefone1, string cpf, string email);
         Task NovoCliente(ClienteWizard02 cliente);
         Task<List<EventoWizard02>> RegraRenitencia(EventoWizard02 evento, bool reprocessando);
+        Task<bool> CriarOc(int? id);
         Task<OcorrenciaWizard02> CriarOcorrencia(int? id);
         Task ReseteOcorrencia(int id);
         Task<OcorrenciaWizard02> Roleta();

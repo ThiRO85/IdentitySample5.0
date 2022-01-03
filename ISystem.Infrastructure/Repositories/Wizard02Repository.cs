@@ -102,18 +102,14 @@ namespace ISystem.Infrastructure.Repositories
             return eventos;
         }
 
+        public async Task<bool> CriarOcAsync(int? id)
+        {
+            var ocorrencia = await _context.OcorrenciaWizard02.AnyAsync(aa => aa.Finalizado == false && aa.FilaId == 1 && aa.ClienteWizard02Id == id);
+            return ocorrencia;
+        }
+
         public async Task<OcorrenciaWizard02> CriarOcorrenciaAsync(int? id)
         {
-            //if (id == null)
-            //{
-            //    return new HttpStatusCodeResult(HttpStatusCode.BadRequest, "Parâmetro de Busca Nulo");
-            //}
-            //if (_db.OcorrenciaWizardOn.Any(aa => aa.Finalizado == false && aa.FilaId == 1 && aa.ClienteWizardOnId == id))
-            //{
-            //    TempData["Message"] = "Já existe uma ocorrência pendente para este cliente, finalize-a antes de criar uma nova ou verifique se você tem acesso à fila";
-            //    return RedirectToAction("Index");
-            //}
-
             var ocorrencia = new OcorrenciaWizard02();
 
             ocorrencia.FilaId = 1; // Fila Padrão
@@ -911,6 +907,6 @@ namespace ISystem.Infrastructure.Repositories
         {
             _context.Entry(classificacao).State = EntityState.Modified;
             await _context.SaveChangesAsync();
-        }        
+        }       
     }
 }

@@ -1,0 +1,33 @@
+﻿@model IEnumerable<ISystem.Domain.Entities.Wizard02.GrupoProcessoWizard02>
+
+@{
+    ViewBag.Title = "GrupoProcesso";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<p>
+    @Html.ActionLink("Cadastrar", "GrupoProcessoCreate", null, null, new { @class = "btn btn-secondary" })
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Nome)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Nome)
+                </td>
+                <td>
+                    @Html.ActionLink("Editar", "GrupoProcessoEdit", new { id = item.Id })
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

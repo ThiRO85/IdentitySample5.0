@@ -2,7 +2,9 @@
 using ISystem.Application.Methods;
 using ISystem.Domain.Entities;
 using ISystem.Domain.Entities.Wizard02;
+using ISystem.Infrastructure.Methods;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,7 +48,6 @@ namespace ISystem.WebUI.Controllers
         //        ModelState.AddModelError("", "Falha no Login Novax");
         //    }
         //    var clientes = await _wizard02Service.Index(nome, telefone1, cpf, email);
-
         //    return View(clientes);
         //}
 
@@ -90,6 +91,17 @@ namespace ISystem.WebUI.Controllers
 
         public async Task<IActionResult> CriarOc(int? id)
         {
+            //if (id == null)
+            //{
+            //    return new HttpStatusCodeResult(HttpStatusCode.BadRequest, "Parâmetro de Busca Nulo");
+            //}
+            var oc = await _wizard02Service.CriarOc(id);
+            if (oc)
+            {
+                TempData["Message"] = "Já existe uma ocorrência pendente para este cliente, finalize-a antes de criar uma nova ou verifique se você tem acesso à fila";
+                return RedirectToAction("Index");
+            }
+
             var ocorrencia = await _wizard02Service.CriarOcorrencia(id);
             return RedirectToAction("Atendimento", new { ocorrenciaId = ocorrencia.Id });
         }
@@ -104,7 +116,6 @@ namespace ISystem.WebUI.Controllers
         public async Task<IActionResult> Roleta()
         {
             var ocorrencia = await _wizard02Service.Roleta();
-
             if (ocorrencia == null)
             {
                 TempData["Message"] = "Sem ocorrência pendente em suas filas";
@@ -208,8 +219,7 @@ namespace ISystem.WebUI.Controllers
                 }
                 if (!string.IsNullOrWhiteSpace(eventoWizard02.Email))
                 {
-                    Regex regex =
-                        new Regex(
+                    Regex regex = new Regex(
                             @"^(([A-Za-z0-9]+_+)|([A-Za-z0-9]+\-+)|([A-Za-z0-9]+\.+)|([A-Za-z0-9]+\++))*[A-Za-z0-9_]+@((\w+\-+)|(\w+\.))*\w{1,63}\.[a-zA-Z]{2,6}$");
                     Match match = regex.Match(eventoWizard02.Email);
                     if (!match.Success)
@@ -277,6 +287,7 @@ namespace ISystem.WebUI.Controllers
                     if (string.IsNullOrWhiteSpace(eventoWizard02.Numero))
                         ModelState.AddModelError("", @"Numero é obrigatório");
                 }
+
                 int[] regra2 = new int[] { 87, 89, 93, 97, 98, 102, 164, 166, 168 };
 
                 if (regra2.Any(x => x == eventoWizard02.ClassificacaoId))
@@ -334,6 +345,7 @@ namespace ISystem.WebUI.Controllers
                 {
                     eventoWizard02.Cpf = "";
                 }
+
                 var idclient = eventoWizard02.ClienteWizard02.Id;
                 PropertyCopier.Copy(eventoWizard02, eventoWizard02.ClienteWizard02);
                 eventoWizard02.ClienteWizard02.Id = idclient;
@@ -409,14 +421,12 @@ namespace ISystem.WebUI.Controllers
                     {
                         break;
                     }
-
                     var pai = await _wizard02Service.AtendimentoPai(aux);
                     item.ClassificacaoView = pai.Nome + " > " + item.ClassificacaoView;
                     aux = pai.ClassificacaoPaiId;
                 }
                 item.ClassificacaoView += item.Classificacao?.Nome;
             }
-
             return View(eventoWizard02);
         }
 
@@ -424,51 +434,51 @@ namespace ISystem.WebUI.Controllers
         public async Task<ActionResult> Controle()
         {
             var filas = await _wizard02Service.MovimentarFilasGet();
-            //ViewBag.Filas = new SelectList(filas, "Id", "Nome");
+            ViewBag.Filas = new SelectList(filas, "Id", "Nome");
             return View();
         }
 
-        //public async Task<JsonResult> GetFila(int id)
-        //{
-        //    var listar = await _wizard02Service.GetFila(id);
-        //    var fila = new List<object>
-        //    {
-        //        new
-        //        {
-        //            listar.Id,
-        //            listar.Nome,
-        //            listar.DtCriacao,
-        //            QtdUsuario = listar.Users.Count,
-        //            Status = listar.Ativo
-        //        }
-        //    };
+        public async Task<JsonResult> GetFila(int id)
+        {
+            var listar = await _wizard02Service.GetFila(id);
+            var fila = new List<object>
+            {
+                new
+                {
+                    listar.Id,
+                    listar.Nome,
+                    listar.DtCriacao,
+                    QtdUsuario = listar.Users.Count,
+                    Status = listar.Ativo
+                }
+            };
 
-        //    var usuario = new List<object>();
+            var usuario = new List<object>();
 
-        //    foreach (var item in listar.Users)
-        //    {
-        //        usuario.Add(new
-        //        {
-        //            item.Id,
-        //            item.Nome,
-        //            item.UserName
-        //        });
-        //    }
-        //    return Json(new { fila, usuario }, JsonRequestBehavior.AllowGet);
-        //}
+            //foreach (var item in listar.Users)
+            //{
+            //    usuario.Add(new
+            //    {
+            //        item.Id,
+            //        item.Nome,
+            //        item.UserName
+            //    });
+            //}
+            return Json(new { fila, usuario }, new Newtonsoft.Json.JsonSerializerSettings());
+        }
 
         //[Authorize(Roles = "Admin")]
-        //public async Task<JsonResult> GetFilaUsuario(int id)
-        //{
-        //    List<object> lista = new List<object>
-        //    {
-        //        new
-        //        {
-        //            usuarios = await _wizard02Service.GetFilaUsuario(id)
-        //        }
-        //    };
-        //    return Json(new { lista }, JsonRequestBehavior.AllowGet);
-        //}
+        public async Task<JsonResult> GetFilaUsuario(int id)
+        {
+            List<object> lista = new List<object>
+            {
+                new
+                {
+                    usuarios = await _wizard02Service.GetFilaUsuario(id)
+                }
+            };
+            return Json(new { lista }, new Newtonsoft.Json.JsonSerializerSettings());
+        }
 
         //[Authorize(Roles = "Admin")]
         [HttpPost]
@@ -506,20 +516,20 @@ namespace ISystem.WebUI.Controllers
             return Json(sucesso);
         }
 
-        //public async Task<JsonResult> GetRegra(int classificacao)
-        //{            
-        //    var agendamento = await _wizard02Service.GetRegra(classificacao);
-        //    return Json(agendamento, JsonRequestBehavior.AllowGet);
-        //}
+        public async Task<JsonResult> GetRegra(int classificacao)
+        {
+            var agendamento = await _wizard02Service.GetRegra(classificacao);
+            return Json(agendamento, new Newtonsoft.Json.JsonSerializerSettings());
+        }
 
-        //public async Task<JsonResult> GetClassificacao(int grupo)
-        //{
-        //    List<ClassificacaoWizard02View> retorno = new List<ClassificacaoWizard02View>();
-        //    var classificacoes = await _wizard02Service.GetClassificacao(grupo);
-        //    retorno.Add(new ClassificacaoWizard02View() { id = 0, text = "-- Selecione uma opção --", disabled = false, level = 0 });
-        //    retorno.AddRange(DefinirClassificacaoWizard02View(classificacoes, 0, grupo, null));
-        //    return Json(new { retorno }, JsonRequestBehavior.AllowGet);
-        //}
+        public async Task<JsonResult> GetClassificacao(int grupo)
+        {
+            List<ClassificacaoWizard02View> retorno = new List<ClassificacaoWizard02View>();
+            var classificacoes = await _wizard02Service.GetClassificacao(grupo);
+            retorno.Add(new ClassificacaoWizard02View() { id = 0, text = "-- Selecione uma opção --", disabled = false, level = 0 });
+            retorno.AddRange(DefinirClassificacaoWizard02View(classificacoes, 0, grupo, null));
+            return Json(new { retorno }, new Newtonsoft.Json.JsonSerializerSettings());
+        }
 
         [NonAction]
         public List<ClassificacaoWizard02View> DefinirClassificacaoWizard02View(ICollection<ClassificacaoWizard02> resultado, int level, int grupo, string pai)
@@ -555,19 +565,19 @@ namespace ISystem.WebUI.Controllers
             return retorno;
         }
 
-        //public async Task<JsonResult> GetFilaOcorrencias()
-        //{ 
-        //    var query = await _wizard02Service.GetFilaOcorrencias();
-        //    query.OrderByDescending(x => x.DtMovimentacao).ToList();
-        //    return Json(new { query }, JsonRequestBehavior.AllowGet);
-        //}
+        public async Task<JsonResult> GetFilaOcorrencias()
+        {
+            var query = await _wizard02Service.GetFilaOcorrencias();
+            query.OrderByDescending(x => x.DtMovimentacao).ToList();
+            return Json(new { query }, new Newtonsoft.Json.JsonSerializerSettings());
+        }
 
-        //public async Task<JsonResult> GetClienteOcorrencias(int id)
-        //{
-        //    var query = await _wizard02Service.GetClienteOcorrencias(id);
-        //    query.OrderBy(i => i.Prioridade).ThenByDescending(i => i.ProximoAt);
-        //    return Json(new { query }, JsonRequestBehavior.AllowGet);
-        //}
+        public async Task<JsonResult> GetClienteOcorrencias(int id)
+        {
+            var query = await _wizard02Service.GetClienteOcorrencias(id);
+            query.OrderBy(i => i.Prioridade).ThenByDescending(i => i.ProximoAt);
+            return Json(new { query }, new Newtonsoft.Json.JsonSerializerSettings()); //return Json(new { query }, JsonRequestBehavior.AllowGet);
+        }
 
         //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> Campanha()
@@ -579,17 +589,17 @@ namespace ISystem.WebUI.Controllers
         //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> CampanhaEdit(int? id)
         {
-            //if (id == null)
-            //{
-            //    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            //}
+            if (id == null)
+            {
+                return NotFound();
+            }
 
             var listaWizard02 = await _wizard02Service.GetCampanhaEdit(id);
 
-            //if (listaWizard02 == null)
-            //{
-            //    return HttpNotFound();
-            //}
+            if (listaWizard02 == null)
+            {
+                return NotFound();
+            }
             return View(listaWizard02);
         }
 
@@ -626,8 +636,8 @@ namespace ISystem.WebUI.Controllers
         {
             var filas = await _wizard02Service.MovimentarFilasGet();
             var campanhas = await _wizard02Service.MovimentarCampanhasGet();
-            //ViewBag.FilaId = new SelectList(filas, "Id", "Nome");
-            //ViewBag.CampanhaId = new SelectList(campanhas, "Id", "Nome");
+            ViewBag.FilaId = new SelectList(filas, "Id", "Nome");
+            ViewBag.CampanhaId = new SelectList(campanhas, "Id", "Nome");
             return View();
         }
 
@@ -647,8 +657,8 @@ namespace ISystem.WebUI.Controllers
 
             var filas = await _wizard02Service.MovimentarFilasGet();
             var campanhas = await _wizard02Service.MovimentarCampanhasGet();
-            //ViewBag.FilaId = new SelectList(filas, "Id", "Nome");
-            //ViewBag.CampanhaId = new SelectList(campanhas, "Id", "Nome");
+            ViewBag.FilaId = new SelectList(filas, "Id", "Nome");
+            ViewBag.CampanhaId = new SelectList(campanhas, "Id", "Nome");
 
             if ((valores.DtCriacaoFim == null && valores.DtCriacaoInicio != null) || ((valores.DtCriacaoInicio == null && valores.DtCriacaoFim != null)))
             {
@@ -711,7 +721,7 @@ namespace ISystem.WebUI.Controllers
         public async Task<IActionResult> FilaCreate()
         {
             var grupoProcesso = await _wizard02Service.FilaCreateGet();
-            //ViewBag.GrupoWizard02Id = new SelectList(grupoProcesso, "Id", "Nome");
+            ViewBag.GrupoWizard02Id = new SelectList(grupoProcesso, "Id", "Nome");
             return View();
         }
 
@@ -726,7 +736,7 @@ namespace ISystem.WebUI.Controllers
                 return RedirectToAction("Fila");
             }
             var grupoProcesso = await _wizard02Service.FilaCreateGet();
-            //ViewBag.GrupoWizard02Id = new SelectList(grupoProcesso, "Id", "Nome", fila.GrupoWizard02Id);
+            ViewBag.GrupoWizard02Id = new SelectList(grupoProcesso, "Id", "Nome", fila.GrupoWizard02Id);
             return View(fila);
         }
 
@@ -743,7 +753,7 @@ namespace ISystem.WebUI.Controllers
                 return NotFound();
             }
             var grupoProcesso = await _wizard02Service.FilaCreateGet();
-            //ViewBag.GrupoWizard02Id = new SelectList(grupoProcesso, "Id", "Nome", fila.GrupoWizard02Id);
+            ViewBag.GrupoWizard02Id = new SelectList(grupoProcesso, "Id", "Nome", fila.GrupoWizard02Id);
             return View(fila);
         }
 
@@ -758,7 +768,7 @@ namespace ISystem.WebUI.Controllers
                 return RedirectToAction("Fila");
             }
             var grupoProcesso = await _wizard02Service.FilaCreateGet();
-            //ViewBag.GrupoWizard02Id = new SelectList(grupoProcesso, "Id", "Nome", fila.GrupoWizard02Id);
+            ViewBag.GrupoWizard02Id = new SelectList(grupoProcesso, "Id", "Nome", fila.GrupoWizard02Id);
             return View(fila);
         }
 
@@ -862,11 +872,11 @@ namespace ISystem.WebUI.Controllers
         public async Task<IActionResult> ClassificacaoCreate()
         {
             var classificacoesII = await _wizard02Service.GrupoProcessoCreateII();
-            //ViewBag.ClassificacaoPaiId = new SelectList(classificacoesII.OrderBy(o => o.ClassificacaoView), "Id", "ClassificacaoView");
+            ViewBag.ClassificacaoPaiId = new SelectList(classificacoesII.OrderBy(o => o.ClassificacaoView), "Id", "ClassificacaoView");
             var filas = await _wizard02Service.MovimentarFilasGet();
-            //ViewBag.FilaId = new SelectList(filas, "Id", "Nome");
+            ViewBag.FilaId = new SelectList(filas, "Id", "Nome");
             var status = await _wizard02Service.ClassificacaoCreateGet();
-            //ViewBag.StatusId = new SelectList(status, "Id", "Nome");
+            ViewBag.StatusId = new SelectList(status, "Id", "Nome");
             return View();
         }
 
@@ -885,9 +895,9 @@ namespace ISystem.WebUI.Controllers
                 return RedirectToAction("Classificacao");
             }
             var classificacoesII = await _wizard02Service.GrupoProcessoCreateII();
-            //ViewBag.ClassificacaoPaiId = new SelectList(classificacoesII.OrderBy(o => o.ClassificacaoView), "Id", "ClassificacaoView");
+            ViewBag.ClassificacaoPaiId = new SelectList(classificacoesII.OrderBy(o => o.ClassificacaoView), "Id", "ClassificacaoView");
             var filas = await _wizard02Service.MovimentarFilasGet();
-            //ViewBag.FilaId = new SelectList(filas, "Id", "Nome");
+            ViewBag.FilaId = new SelectList(filas, "Id", "Nome");
             return View(classificacao);
         }
 
@@ -904,11 +914,11 @@ namespace ISystem.WebUI.Controllers
                 return NotFound();
             }
             var classificacoesII = await _wizard02Service.GrupoProcessoCreateII();
-            //ViewBag.ClassificacaoPaiId = new SelectList(classificacoesII.OrderBy(o => o.ClassificacaoView), "Id", "ClassificacaoView");
+            ViewBag.ClassificacaoPaiId = new SelectList(classificacoesII.OrderBy(o => o.ClassificacaoView), "Id", "ClassificacaoView");
             var filas = await _wizard02Service.MovimentarFilasGet();
-            //ViewBag.FilaId = new SelectList(filas, "Id", "Nome");
+            ViewBag.FilaId = new SelectList(filas, "Id", "Nome");
             var status = await _wizard02Service.ClassificacaoCreateGet();
-            //ViewBag.StatusId = new SelectList(status, "Id", "Nome");
+            ViewBag.StatusId = new SelectList(status, "Id", "Nome");
             return View(classificacao);
         }
 
@@ -927,11 +937,11 @@ namespace ISystem.WebUI.Controllers
                 return RedirectToAction("Classificacao");
             }
             var classificacoesII = await _wizard02Service.GrupoProcessoCreateII();
-            //ViewBag.ClassificacaoPaiId = new SelectList(classificacoesII.OrderBy(o => o.ClassificacaoView), "Id", "ClassificacaoView");
+            ViewBag.ClassificacaoPaiId = new SelectList(classificacoesII.OrderBy(o => o.ClassificacaoView), "Id", "ClassificacaoView");
             var filas = await _wizard02Service.MovimentarFilasGet();
-            //ViewBag.FilaId = new SelectList(filas, "Id", "Nome");
+            ViewBag.FilaId = new SelectList(filas, "Id", "Nome");
             var status = await _wizard02Service.ClassificacaoCreateGet();
-            //ViewBag.StatusId = new SelectList(status, "Id", "Nome");
+            ViewBag.StatusId = new SelectList(status, "Id", "Nome");
             return View(classificacao);
         }
     }
