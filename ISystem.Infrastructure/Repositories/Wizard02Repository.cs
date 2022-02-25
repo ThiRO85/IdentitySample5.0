@@ -215,8 +215,12 @@ namespace ISystem.Infrastructure.Repositories
 
         public async Task<OcorrenciaWizard02> AtendimentoEventoOcorrenciaAsync(EventoWizard02 evento)
         {
-            evento.Ocorrencia = await _context.OcorrenciaWizard02.Include(i => i.Fila).Include(i => i.Eventos).Include(i => i.Eventos.Select(ii => ii.Classificacao))
-                    .FirstOrDefaultAsync(x => x.Id == evento.Ocorrencia.Id);
+            evento.Ocorrencia = await _context.OcorrenciaWizard02
+                .Include(i => i.Fila)
+                .Include(i => i.Eventos)
+                .Include(i => i.Eventos
+                .Select(ii => ii.Classificacao))
+                .FirstOrDefaultAsync(x => x.Id == evento.Ocorrencia.Id);
             return evento.Ocorrencia;
         }
 

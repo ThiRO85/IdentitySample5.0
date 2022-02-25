@@ -8,13 +8,17 @@
             var childProperties = child.GetType().GetProperties();
 
             foreach (var parentProperty in parentProperties)
+            {
                 foreach (var childProperty in childProperties)
+                {
                     if (parentProperty.Name == childProperty.Name &&
                         parentProperty.PropertyType == childProperty.PropertyType)
                     {
                         childProperty.SetValue(child, parentProperty.GetValue(parent));
                         break;
                     }
+                }                    
+            }               
         }
     }
 }

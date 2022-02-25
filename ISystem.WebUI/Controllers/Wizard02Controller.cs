@@ -26,10 +26,12 @@ namespace ISystem.WebUI.Controllers
         //{
         //    var userid = User.Identity.GetUserId();
         //    bool logado = Novax.Login(userid);
+
         //    if (!logado)
         //    {
         //        ModelState.AddModelError("", "Falha no Login Novax");
         //    }
+
         //    if (TempData["Message"] != null)
         //    {
         //        ModelState.AddModelError(string.Empty, TempData["Message"].ToString());
@@ -43,10 +45,12 @@ namespace ISystem.WebUI.Controllers
         //{
         //    var userid = User.Identity.GetUserId();
         //    bool logado = Novax.Login(userid);
+
         //    if (!logado)
         //    {
         //        ModelState.AddModelError("", "Falha no Login Novax");
         //    }
+
         //    var clientes = await _wizard02Service.Index(nome, telefone1, cpf, email);
         //    return View(clientes);
         //}
@@ -78,6 +82,7 @@ namespace ISystem.WebUI.Controllers
             {
                 return View("Index");
             }
+
             await _wizard02Service.NovoCliente(cliente);
             return RedirectToAction("CriarOc", new { id = cliente.Id });
         }
@@ -95,7 +100,9 @@ namespace ISystem.WebUI.Controllers
             //{
             //    return new HttpStatusCodeResult(HttpStatusCode.BadRequest, "Parâmetro de Busca Nulo");
             //}
+
             var oc = await _wizard02Service.CriarOc(id);
+
             if (oc)
             {
                 TempData["Message"] = "Já existe uma ocorrência pendente para este cliente, finalize-a antes de criar uma nova ou verifique se você tem acesso à fila";
@@ -116,6 +123,7 @@ namespace ISystem.WebUI.Controllers
         public async Task<IActionResult> Roleta()
         {
             var ocorrencia = await _wizard02Service.Roleta();
+
             if (ocorrencia == null)
             {
                 TempData["Message"] = "Sem ocorrência pendente em suas filas";
@@ -128,13 +136,16 @@ namespace ISystem.WebUI.Controllers
         {
             //var userId = User.Identity.GetUserId();
             var data = DateTime.Now;
+
             if (ocorrenciaId == null)
             {
                 return NotFound();
             }
+
             //var userid = User.Identity.GetUserId();
             var userid = "teste"; //Paliativo pra não dar erro no método.
             var ocorrencia = await _wizard02Service.AtendimentoOcorrenciaGet(ocorrenciaId, userid);
+
             if (ocorrencia == null)
             {
                 TempData["Message"] = "Ocorrência não localizada ou já finalizada";
@@ -376,6 +387,7 @@ namespace ISystem.WebUI.Controllers
                 {
                     eventoWizard02.Ocorrencia.ProximoAt = DateTime.Now.AddMinutes(eventoWizard02.Classificacao.RetornoEmMin);
                 }
+
                 if (eventoWizard02.Classificacao.FilaId != null)
                 {
                     eventoWizard02.Ocorrencia.Fila = eventoWizard02.Classificacao.Fila;
@@ -504,10 +516,12 @@ namespace ISystem.WebUI.Controllers
             {
                 ModelState.AddModelError("", "Cliente não encontrado");
             }
+
             if (string.IsNullOrWhiteSpace(nome))
             {
                 ModelState.AddModelError("", "Informe um nome para indicar");
             }
+
             if (ModelState.IsValid)
             {
                 await _wizard02Service.SetIndicacao(indicadoPor, nome, telefone, email);
@@ -551,6 +565,7 @@ namespace ISystem.WebUI.Controllers
                 {
                     filho.text = item.Nome;
                 }
+
                 if (item.Classificacoes.Where(x => x.GrupoProcessoWizard02.Any(a => a.Id == grupo)).Count() > 0)
                 {
                     filho.disabled = true;
@@ -735,6 +750,7 @@ namespace ISystem.WebUI.Controllers
                 await _wizard02Service.FilaCreate(fila);
                 return RedirectToAction("Fila");
             }
+
             var grupoProcesso = await _wizard02Service.FilaCreateGet();
             ViewBag.GrupoWizard02Id = new SelectList(grupoProcesso, "Id", "Nome", fila.GrupoWizard02Id);
             return View(fila);
@@ -752,6 +768,7 @@ namespace ISystem.WebUI.Controllers
             {
                 return NotFound();
             }
+
             var grupoProcesso = await _wizard02Service.FilaCreateGet();
             ViewBag.GrupoWizard02Id = new SelectList(grupoProcesso, "Id", "Nome", fila.GrupoWizard02Id);
             return View(fila);
@@ -767,6 +784,7 @@ namespace ISystem.WebUI.Controllers
                 await _wizard02Service.FilaEdit(fila);
                 return RedirectToAction("Fila");
             }
+
             var grupoProcesso = await _wizard02Service.FilaCreateGet();
             ViewBag.GrupoWizard02Id = new SelectList(grupoProcesso, "Id", "Nome", fila.GrupoWizard02Id);
             return View(fila);
@@ -795,6 +813,7 @@ namespace ISystem.WebUI.Controllers
                 await _wizard02Service.GrupoProcessoCreate(grupoProcesso, classificacao);
                 return RedirectToAction("GrupoProcesso");
             }
+
             var classificacoesII = await _wizard02Service.GrupoProcessoCreateII();
             return View(new GrupoProcessoWizard02()
             /*{
@@ -820,6 +839,7 @@ namespace ISystem.WebUI.Controllers
             {
                 return NotFound();
             }
+
             var classificacoesII = await _wizard02Service.GrupoProcessoCreateII();
             return View(new GrupoProcessoWizard02()
             /*{
@@ -846,6 +866,7 @@ namespace ISystem.WebUI.Controllers
                 await _wizard02Service.GrupoProcessoEdit(grupoProcesso, classificacao);
                 return RedirectToAction("GrupoProcesso");
             }
+
             var classificacoesII = await _wizard02Service.GrupoProcessoCreateII();
             return View(new GrupoProcessoWizard02()
             /*{
@@ -894,6 +915,7 @@ namespace ISystem.WebUI.Controllers
                 await _wizard02Service.ClassificacaoCreate(classificacao);
                 return RedirectToAction("Classificacao");
             }
+
             var classificacoesII = await _wizard02Service.GrupoProcessoCreateII();
             ViewBag.ClassificacaoPaiId = new SelectList(classificacoesII.OrderBy(o => o.ClassificacaoView), "Id", "ClassificacaoView");
             var filas = await _wizard02Service.MovimentarFilasGet();
@@ -908,11 +930,14 @@ namespace ISystem.WebUI.Controllers
             {
                 return NotFound();
             }
+
             ClassificacaoWizard02 classificacao = await _wizard02Service.ClassificacaoEditGet(id);
+
             if (classificacao == null)
             {
                 return NotFound();
             }
+
             var classificacoesII = await _wizard02Service.GrupoProcessoCreateII();
             ViewBag.ClassificacaoPaiId = new SelectList(classificacoesII.OrderBy(o => o.ClassificacaoView), "Id", "ClassificacaoView");
             var filas = await _wizard02Service.MovimentarFilasGet();
@@ -936,6 +961,7 @@ namespace ISystem.WebUI.Controllers
                 await _wizard02Service.ClassificacaoEdit(classificacao);
                 return RedirectToAction("Classificacao");
             }
+
             var classificacoesII = await _wizard02Service.GrupoProcessoCreateII();
             ViewBag.ClassificacaoPaiId = new SelectList(classificacoesII.OrderBy(o => o.ClassificacaoView), "Id", "ClassificacaoView");
             var filas = await _wizard02Service.MovimentarFilasGet();
